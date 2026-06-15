@@ -7,13 +7,47 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0} body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f2;color:#111;min-height:100vh}.container{max-width:980px;margin:0 auto;padding:2rem 1rem}h1{font-size:22px;font-weight:750}h1 span{font-size:13px;font-weight:400;color:#6f7782;margin-left:8px}p{font-size:13px;color:#7b8490}.card,.prices-card,.metric{background:#fff;border:1px solid #dfdfdc;border-radius:12px}.card{padding:1rem 1.25rem;margin-bottom:1rem}.card h3,.prices-card h3{font-size:12px;font-weight:750;color:#7b8490;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:1.35rem}.auth-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.user-pill{font-size:12px;color:#6f7782;background:#fff;border:1px solid #dfdfdc;border-radius:999px;padding:7px 12px;display:none}.auth-panel{display:none}.auth-panel.show{display:block}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:1.25rem 0}.metric{padding:14px 16px;min-height:90px}.metric-label{font-size:11px;color:#7b8490;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.metric-value{font-size:21px;font-weight:750}.metric-sub{font-size:12px;color:#9aa1aa;margin-top:3px}.positive{color:#007d5f!important}.negative{color:#b42318!important}.prices-card{padding:1rem 1.25rem;margin-bottom:1.25rem}.price-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}.price-row{display:flex;align-items:center;gap:8px;background:#f9f9f7;border-radius:9px;padding:8px 10px}.price-row label{font-size:13px;font-weight:750;min-width:62px}.qqqm,.qqq{color:#185FA5}.vwra{color:#3B6D11}.btc{color:#854F0B}.custom{color:#555}input,select{border:1px solid #d8d8d5;border-radius:7px;padding:8px 10px;font-size:14px;background:#fff;color:#111;width:100%}input:focus,select:focus{outline:none;border-color:#9eb9e8;box-shadow:0 0 0 3px rgba(80,130,200,.12)}.price-row input{width:110px;padding:5px 8px}.price-hint{font-size:11px;color:#9aa1aa;margin-top:9px}.tabs{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}.tab{padding:7px 18px;border-radius:8px;border:1px solid #d8d8d5;background:#fff;color:#6f7782;font-size:13px;cursor:pointer}.tab.active{background:#111;color:#fff;border-color:#111}.tab.add-instrument{border-style:dashed;color:#111}.instrument-panel{display:none}.instrument-panel.show{display:block}.bottom-actions{margin-top:1rem;display:flex;align-items:center;justify-content:space-between;gap:12px}.bottom-actions .download-label{font-weight:600;color:#6f7782;font-size:13px}.price-row{border-left:4px solid var(--asset-color,#ddd)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-field{display:flex;flex-direction:column;gap:5px}.form-field label{font-size:12px;color:#4f5b66}.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.btn{padding:8px 16px;border-radius:7px;border:1px solid #d8d8d5;background:#fff;color:#222;font-size:13px;cursor:pointer;font-family:inherit}.btn:hover{background:#f5f5f2}.btn.primary{background:#111;color:#fff;border-color:#111}.btn.primary:hover{background:#333}.btn.danger{color:#b42318;border-color:transparent;background:transparent}.btn.sm{padding:5px 10px;font-size:12px}.asset-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:1rem}.asset-metric{background:#fff;border:1px solid #eee;border-radius:9px;padding:12px}.asset-metric .label{font-size:11px;color:#8b939d;margin-bottom:4px}.asset-metric .value{font-size:15px;font-weight:750}.asset-metric .sub{font-size:11px;color:#9aa1aa}.dashboard-grid{display:grid;grid-template-columns:1.25fr .85fr;gap:1rem;margin-top:1.5rem}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;padding:12px 10px;color:#7b8490;font-weight:750;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #eee}td{padding:12px 10px;border-bottom:1px solid #f1f1ef}tr:last-child td{border-bottom:none}tr:hover td{background:#fafaf8}.empty{text-align:center;padding:2.5rem;color:#9aa1aa;font-size:13px}.empty i{font-size:28px;display:block;margin-bottom:10px}.muted{color:#9aa1aa;font-size:12px}.hidden{display:none!important}.pie-wrap{position:relative;width:100%;height:315px}.chart-wrap{position:relative;width:100%;height:300px;display:none}.asset-mini-list{font-size:12px;color:#58616c;margin-top:10px}.mini-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #f3f3f1}.mini-row:last-child{border-bottom:none}@media(max-width:760px){.dashboard-grid{grid-template-columns:1fr}.form-grid,.summary-grid,.price-rows{grid-template-columns:1fr}.topbar{display:block}.auth-actions{justify-content:flex-start;margin-top:12px}.tabs{overflow:auto;flex-wrap:nowrap}.tab{white-space:nowrap}}
+
+  /* Dark mode + custom modal */
+  body.dark{background:#0f1115;color:#f4f5f7}
+  body.dark h1,body.dark .metric-value,body.dark .asset-metric .value,body.dark td{color:#f4f5f7}
+  body.dark h1 span,body.dark p,body.dark .muted,body.dark .metric-label,body.dark .metric-sub,body.dark .card h3,body.dark .prices-card h3,body.dark th,body.dark .bottom-actions .download-label,body.dark .asset-mini-list{color:#a3aab6}
+  body.dark .card,body.dark .prices-card,body.dark .metric,body.dark .user-pill{background:#171a21;border-color:#2b303b}
+  body.dark .price-row,body.dark .asset-metric{background:#1f232c;border-color:#2b303b}
+  body.dark input,body.dark select{background:#11141a;color:#f4f5f7;border-color:#343a46}
+  body.dark input:focus,body.dark select:focus{border-color:#6c8edb;box-shadow:0 0 0 3px rgba(108,142,219,.18)}
+  body.dark .btn{background:#1d212b;color:#f4f5f7;border-color:#343a46}
+  body.dark .btn:hover{background:#262b36}
+  body.dark .btn.primary,body.dark .tab.active{background:#f4f5f7;color:#111;border-color:#f4f5f7}
+  body.dark .btn.danger{background:transparent;color:#ff6b6b;border-color:transparent}
+  body.dark .tab{background:#171a21;color:#a3aab6;border-color:#343a46}
+  body.dark .tab.add-instrument{color:#f4f5f7}
+  body.dark tr:hover td{background:#1c2029}
+  body.dark td,body.dark th,body.dark .mini-row{border-color:#2b303b}
+  body.dark .empty{color:#a3aab6}
+  .theme-toggle{display:inline-flex;align-items:center;gap:7px}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(7,10,15,.58);display:none;align-items:center;justify-content:center;z-index:99999;padding:18px;backdrop-filter:blur(4px)}
+  .modal-backdrop.show{display:flex}
+  .app-modal{width:min(420px,100%);background:#fff;border:1px solid #e6e6e2;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px;transform:translateY(10px) scale(.98);opacity:0;animation:modalIn .16s ease forwards}
+  body.dark .app-modal{background:#171a21;border-color:#303642;color:#f4f5f7;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+  @keyframes modalIn{to{transform:translateY(0) scale(1);opacity:1}}
+  .modal-icon{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:#eef3ff;color:#185FA5;font-size:18px}
+  .modal-icon.danger{background:#fff0f0;color:#b42318}
+  body.dark .modal-icon{background:#22304a;color:#9ebcff}
+  body.dark .modal-icon.danger{background:#3b2024;color:#ff8787}
+  .modal-title{font-size:17px;font-weight:750;margin-bottom:6px;color:#111}
+  body.dark .modal-title{color:#f4f5f7}
+  .modal-message{font-size:13px;line-height:1.5;color:#69717d;white-space:pre-wrap}
+  body.dark .modal-message{color:#b5bdc9}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
 </style>
 </head>
 <body>
 <div class="container">
   <div class="topbar">
     <div><h1>DCA Tracker <span>Portofolio Bulanan</span></h1><p style="margin-top:4px;">Catat pembelian rutin, pantau unrealized gain, export Excel, dan harga otomatis via Supabase Edge Function.</p></div>
-    <div class="auth-actions"><span class="user-pill" id="user-pill"></span><button class="btn" id="show-auth-btn" onclick="toggleAuth()">Login</button><button class="btn danger hidden" id="logout-btn" onclick="signOut()">Logout</button></div>
+    <div class="auth-actions"><button class="btn theme-toggle" id="theme-btn" onclick="toggleTheme()"><i class="fa-regular fa-moon"></i> Dark</button><span class="user-pill" id="user-pill"></span><button class="btn" id="show-auth-btn" onclick="toggleAuth()">Login</button><button class="btn danger hidden" id="logout-btn" onclick="signOut()">Logout</button></div>
   </div>
   <div class="card auth-panel" id="auth-panel"><h3>Login Supabase</h3><div class="form-grid"><div class="form-field"><label>Email</label><input type="email" id="auth-email" placeholder="email lu" /></div><div class="form-field"><label>Password</label><input type="password" id="auth-password" placeholder="password" /></div></div><div class="btn-row"><button class="btn primary" onclick="signIn()">Login</button></div><p class="muted" style="margin-top:10px;">Akun dibuat manual dari Supabase → Authentication → Users → Add user.</p></div>
   <div class="summary-grid"><div class="metric"><div class="metric-label">Total Investasi</div><div class="metric-value" id="s-total">$0</div></div><div class="metric"><div class="metric-label">Nilai Sekarang</div><div class="metric-value" id="s-now">—</div></div><div class="metric"><div class="metric-label">Unrealized Gain/Loss</div><div class="metric-value" id="s-gain">—</div><div class="metric-sub" id="s-pct">Isi harga pasar untuk melihat</div></div><div class="metric"><div class="metric-label">Total Transaksi</div><div class="metric-value" id="s-tx">0</div></div></div>
@@ -22,8 +56,18 @@
   <div class="card instrument-panel" id="instrument-panel"><h3>Tambah Instrumen Baru</h3><div class="form-grid"><div class="form-field"><label>Kode asset</label><input id="asset-symbol" placeholder="cth: GOLD atau GLD" /></div><div class="form-field"><label>Nama asset</label><input id="asset-name" placeholder="cth: Gold ETF" /></div><div class="form-field"><label>Unit</label><input id="asset-unit" placeholder="cth: unit / gram / oz" /></div><div class="form-field"><label>Yahoo ticker optional</label><input id="asset-yahoo" placeholder="cth: GLD atau GC=F" /></div></div><div class="btn-row"><button class="btn primary" onclick="addAsset()">+ Tambah Instrumen</button><button class="btn" onclick="toggleInstrumentForm(false)">Batal</button></div><p class="muted" style="margin-top:10px;">Instrumen custom disimpan di Supabase kalau lu login. Kalau Yahoo ticker kosong, harga pasar lu isi manual.</p></div>
   <div id="tab-content"></div>
   <div class="dashboard-grid"><div class="card" id="chart-section"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px"><div><h3 style="margin-bottom:2px">Ringkasan Portofolio</h3><p>Akumulasi investasi & unrealized gain harian per tanggal.</p></div><div style="display:flex;gap:16px;font-size:12px;color:#555"><span><span style="width:24px;height:3px;background:#378ADD;border-radius:2px;display:inline-block;margin-right:6px"></span>Total Investasi</span><span><span style="width:24px;height:3px;background:#1D9E75;border-radius:2px;display:inline-block;margin-right:6px"></span>Unrealized Gain/Loss</span></div></div><div id="chart-empty" class="empty"><i class="fa-regular fa-chart-bar"></i>Tambahkan transaksi & isi harga pasar untuk melihat grafik</div><div class="chart-wrap" id="chart-wrapper"><canvas id="portfolioChart"></canvas></div></div><div class="card"><h3>Pie Chart Alokasi Asset</h3><div id="pie-empty" class="empty"><i class="fa-solid fa-chart-pie"></i>Belum ada data investasi</div><div class="pie-wrap hidden" id="pie-wrapper"><canvas id="assetPieChart"></canvas></div><div class="asset-mini-list" id="asset-mini-list"></div></div></div>
-  <div class="card bottom-actions"><span class="download-label">download data</span><button class="btn" onclick="exportXLSX()"><i class="fa-regular fa-file-excel"></i> Export data .xlsx</button></div>
+  <div class="card bottom-actions"><span class="download-label">DOWNLOAD DATA</span><button class="btn" onclick="exportXLSX()"><i class="fa-regular fa-file-excel"></i> Export Data .xlsx</button></div>
 </div>
+
+<div class="modal-backdrop" id="app-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="app-modal">
+    <div class="modal-icon" id="app-modal-icon"><i class="fa-solid fa-circle-info"></i></div>
+    <div class="modal-title" id="app-modal-title">Info</div>
+    <div class="modal-message" id="app-modal-message"></div>
+    <div class="modal-actions" id="app-modal-actions"></div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
@@ -33,6 +77,52 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const supabaseUrl = 'https://skdsddfefkipvhwwhgpr.supabase.co'
 const supabaseKey = 'sb_publishable_YjfwjcL661wy805LRMlGOQ_EAxoWLQ2'
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+function applyTheme(mode){
+  document.body.classList.toggle('dark', mode === 'dark');
+  const btn=document.getElementById('theme-btn');
+  if(btn) btn.innerHTML = mode === 'dark' ? '<i class="fa-regular fa-sun"></i> Light' : '<i class="fa-regular fa-moon"></i> Dark';
+  try{ localStorage.setItem('dca-theme', mode); }catch(e){}
+}
+function toggleTheme(){
+  const next=document.body.classList.contains('dark') ? 'light' : 'dark';
+  applyTheme(next);
+  setTimeout(()=>{ if(typeof renderChart==='function') renderChart(); if(typeof renderPieChart==='function') renderPieChart(); }, 50);
+}
+applyTheme((()=>{try{return localStorage.getItem('dca-theme')||'light'}catch(e){return 'light'}})());
+
+function showModal({title='Info',message='',type='info',confirm=false,okText='OK',cancelText='Batal'}={}){
+  return new Promise(resolve=>{
+    const backdrop=document.getElementById('app-modal-backdrop');
+    const titleEl=document.getElementById('app-modal-title');
+    const msgEl=document.getElementById('app-modal-message');
+    const actions=document.getElementById('app-modal-actions');
+    const icon=document.getElementById('app-modal-icon');
+    titleEl.textContent=title;
+    msgEl.textContent=String(message||'');
+    icon.className='modal-icon'+(type==='danger'?' danger':'');
+    icon.innerHTML=type==='danger'?'<i class="fa-solid fa-triangle-exclamation"></i>':'<i class="fa-solid fa-circle-info"></i>';
+    actions.innerHTML='';
+    if(confirm){
+      const cancel=document.createElement('button'); cancel.className='btn'; cancel.textContent=cancelText;
+      const ok=document.createElement('button'); ok.className='btn '+(type==='danger'?'danger':'primary'); ok.textContent=okText;
+      cancel.onclick=()=>{backdrop.classList.remove('show');resolve(false)};
+      ok.onclick=()=>{backdrop.classList.remove('show');resolve(true)};
+      actions.append(cancel,ok);
+    }else{
+      const ok=document.createElement('button'); ok.className='btn primary'; ok.textContent=okText;
+      ok.onclick=()=>{backdrop.classList.remove('show');resolve(true)};
+      actions.append(ok);
+    }
+    backdrop.classList.add('show');
+    const esc=(e)=>{if(e.key==='Escape'){backdrop.classList.remove('show');document.removeEventListener('keydown',esc);resolve(false)}};
+    document.addEventListener('keydown',esc,{once:true});
+  });
+}
+function showAlert(message,title='Info'){return showModal({title,message,type:'info'})}
+function showConfirm(message,title='Konfirmasi',type='danger'){return showModal({title,message,type,confirm:true,okText:'Ya, lanjut',cancelText:'Batal'})}
+window.alert=(message)=>{showAlert(message)};
+
 
 const DEFAULT_ASSETS=[{symbol:'QQQM',name:'QQQM (Nasdaq 100 ETF)',unit:'unit',yahoo:'QQQM',isDefault:true},{symbol:'VWRA',name:'VWRA (Vanguard FTSE All-World)',unit:'unit',yahoo:'VWRA.L',isDefault:true},{symbol:'BTC',name:'Bitcoin (BTC)',unit:'BTC',yahoo:'BTC-USD',isDefault:true}]
 const ASSET_COLORS={QQQM:'#185FA5',VWRA:'#3B6D11',BTC:'#F59E0B'}
@@ -84,9 +174,9 @@ async function removeAsset(symbol){
   const trxCount=(data[symbol]||[]).length;
   if(trxCount>0)return alert(`Instrumen ${symbol} masih punya ${trxCount} transaksi. Hapus transaksi dulu kalau mau hapus instrumen ini.`);
   const a=assetOf(symbol);
-  if(!confirm(`Yakin hapus instrumen ${symbol}?
+  if(!await showConfirm(`Yakin hapus instrumen ${symbol}?
 
-Data instrumen akan hilang dari daftar asset. Transaksi tidak ikut dihapus.`))return;
+Data instrumen akan hilang dari daftar asset. Transaksi tidak ikut dihapus.`, 'Hapus instrumen?', 'danger'))return;
   if(a.id){const {error}=await supabase.from('user_assets').delete().eq('id',a.id);if(error)return alert(error.message)}
   await loadAll();
 }
@@ -191,13 +281,13 @@ function renderContent(){
 function toggleShowAllRows(symbol){showAllRows[symbol]=!showAllRows[symbol];renderContent()}
 function autoCalc(){const h=parseFloat(document.getElementById('f-harga')?.value),u=parseFloat(document.getElementById('f-unit')?.value);if(!isNaN(h)&&!isNaN(u))document.getElementById('f-total').value=(h*u).toFixed(2)} function autoCalcFromTotal(){const h=parseFloat(document.getElementById('f-harga')?.value),t=parseFloat(document.getElementById('f-total')?.value);if(!isNaN(h)&&h>0&&!isNaN(t))document.getElementById('f-unit').value=(t/h).toFixed(6)}
 async function saveEntry(asset){if(!currentUser)return alert('Login dulu bro, biar datanya masuk database.');const tanggal=document.getElementById('f-tanggal').value,hargaBeli=parseFloat(document.getElementById('f-harga').value),jumlahUnit=parseFloat(document.getElementById('f-unit').value),totalBeli=parseFloat(document.getElementById('f-total').value);if(!tanggal||isNaN(hargaBeli)||isNaN(jumlahUnit)||isNaN(totalBeli))return alert('Lengkapi semua field dulu.');if(editIdx!==null){const id=data[asset][editIdx].id;const{error}=await supabase.from('transactions').update({tanggal,harga_beli:hargaBeli,jumlah_unit:jumlahUnit,total_beli:totalBeli}).eq('id',id);if(error)return alert(error.message);editIdx=null}else{const{error}=await supabase.from('transactions').insert({user_id:currentUser.id,asset,tanggal,harga_beli:hargaBeli,jumlah_unit:jumlahUnit,total_beli:totalBeli});if(error)return alert(error.message)}await loadTransactions();renderAll()}
-async function delEntry(asset,idx){if(!confirm('Hapus transaksi ini?'))return;const id=data[asset][idx].id;const{error}=await supabase.from('transactions').delete().eq('id',id);if(error)return alert(error.message);if(editIdx===idx)editIdx=null;await loadTransactions();renderAll()} function startEdit(asset,idx){currentTab=asset;editIdx=idx;renderTabs();renderContent();document.querySelector('.card')?.scrollIntoView({behavior:'smooth',block:'start'})} function cancelEdit(){editIdx=null;renderContent()}
+async function delEntry(asset,idx){if(!await showConfirm('Hapus transaksi ini?', 'Hapus transaksi?', 'danger'))return;const id=data[asset][idx].id;const{error}=await supabase.from('transactions').delete().eq('id',id);if(error)return alert(error.message);if(editIdx===idx)editIdx=null;await loadTransactions();renderAll()} function startEdit(asset,idx){currentTab=asset;editIdx=idx;renderTabs();renderContent();document.querySelector('.card')?.scrollIntoView({behavior:'smooth',block:'start'})} function cancelEdit(){editIdx=null;renderContent()}
 function buildChartData(){const dateSet=new Set();assets.forEach(a=>(data[a.symbol]||[]).forEach(e=>dateSet.add(e.tanggal)));const dates=Array.from(dateSet).sort();if(!dates.length)return null;const labels=[],investData=[],gainData=[];dates.forEach(date=>{let cumCost=0,hasAllPrices=true,cumValue=0;assets.forEach(a=>{const cp=getPrice(a.symbol);if(!cp)hasAllPrices=false;(data[a.symbol]||[]).forEach(e=>{if(e.tanggal<=date){cumCost+=e.totalBeli;if(cp)cumValue+=e.jumlahUnit*cp}})});labels.push(formatChartDate(date));investData.push(Number(cumCost.toFixed(2)));gainData.push(hasAllPrices?Number((cumValue-cumCost).toFixed(2)):null)});return{labels,investData,gainData}}
 function formatChartDate(dateStr){try{return new Date(dateStr+'T00:00:00').toLocaleDateString('id-ID',{timeZone:'Asia/Makassar',day:'2-digit',month:'short',year:'numeric'})}catch{return dateStr}}
 function renderChart(){const d=buildChartData(),emptyEl=document.getElementById('chart-empty'),wrapEl=document.getElementById('chart-wrapper');if(!d){emptyEl.style.display='block';wrapEl.style.display='none';return}const hasGain=d.gainData.some(v=>v!==null);emptyEl.style.display=hasGain?'none':'block';if(!hasGain)emptyEl.innerHTML='<i class="fa-regular fa-chart-bar"></i>Isi harga pasar semua asset untuk melihat unrealized gain di grafik';wrapEl.style.display='block';const ctx=document.getElementById('portfolioChart')?.getContext('2d');if(!ctx)return;if(portfolioChartInstance){portfolioChartInstance.data.labels=d.labels;portfolioChartInstance.data.datasets[0].data=d.investData;portfolioChartInstance.data.datasets[1].data=d.gainData;portfolioChartInstance.update();return}portfolioChartInstance=new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[{label:'Total Investasi',data:d.investData,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',borderWidth:2.5,pointRadius:4,fill:true,tension:.35},{label:'Unrealized Gain/Loss',data:d.gainData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',borderWidth:2.5,borderDash:[6,3],pointRadius:4,fill:true,tension:.35,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#aaa',font:{size:11},maxRotation:45,autoSkip:true,maxTicksLimit:12}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#aaa',font:{size:11},callback:v=>'$'+Number(v).toLocaleString('en-US',{notation:'compact'})}}}}})}
 function renderPieChart(){const rows=assets.map(a=>({symbol:a.symbol,total:calcAsset(a.symbol).totalCost,color:colorForAsset(a.symbol)})).filter(r=>r.total>0),total=rows.reduce((s,r)=>s+r.total,0),empty=document.getElementById('pie-empty'),wrap=document.getElementById('pie-wrapper'),list=document.getElementById('asset-mini-list');if(!rows.length){empty.classList.remove('hidden');wrap.classList.add('hidden');list.innerHTML='';return}empty.classList.add('hidden');wrap.classList.remove('hidden');list.innerHTML=rows.map(r=>`<div class="mini-row"><span style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:999px;background:${r.color};display:inline-block"></span>${r.symbol}</span><b>${fmt(r.total)} • ${((r.total/total)*100).toFixed(1)}%</b></div>`).join('');const ctx=document.getElementById('assetPieChart')?.getContext('2d');if(!ctx)return;const labels=rows.map(r=>r.symbol),values=rows.map(r=>r.total),colors=rows.map(r=>r.color);if(assetPieChartInstance){assetPieChartInstance.data.labels=labels;assetPieChartInstance.data.datasets[0].data=values;assetPieChartInstance.data.datasets[0].backgroundColor=colors;assetPieChartInstance.update();return}assetPieChartInstance=new Chart(ctx,{type:'pie',data:{labels,datasets:[{data:values,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${fmt(ctx.parsed)} (${((ctx.parsed/total)*100).toFixed(1)}%)`}}}}})}
 function exportXLSX(){const rows=[];assets.forEach(a=>(data[a.symbol]||[]).forEach(e=>{const cp=getPrice(a.symbol),nilai=cp?e.jumlahUnit*cp:null,gain=nilai!==null?nilai-e.totalBeli:null,pct=gain!==null&&e.totalBeli>0?gain/e.totalBeli*100:null;rows.push({Asset:a.symbol,Nama:a.name,Tanggal:e.tanggal,'Harga Beli USD':e.hargaBeli,'Jumlah Unit':e.jumlahUnit,'Total Beli USD':e.totalBeli,'Harga Pasar USD':cp||'','Nilai Sekarang USD':nilai||'','Unrealized Gain USD':gain||'','Unrealized %':pct||''})}));if(!rows.length)return alert('Belum ada transaksi buat diexport.');const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,'Transactions');const alloc=assets.map(a=>({Asset:a.symbol,Nama:a.name,'Total Investasi USD':calcAsset(a.symbol).totalCost})).filter(r=>r['Total Investasi USD']>0);XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(alloc),'Allocation');XLSX.writeFile(wb,'dca-tracker-export.xlsx')}
-Object.assign(window,{toggleAuth,signIn,signOut,onPriceChange,switchTab,autoCalc,autoCalcFromTotal,saveEntry,delEntry,startEdit,cancelEdit,fetchMarketPrices,loadLastMarketPrices,exportXLSX,addAsset,removeAsset,toggleInstrumentForm,toggleShowAllRows});await loadAll();await loadLastMarketPrices();supabase.auth.onAuthStateChange(async()=>{await loadAll();await loadLastMarketPrices()})
+Object.assign(window,{toggleAuth,signIn,signOut,onPriceChange,switchTab,autoCalc,autoCalcFromTotal,saveEntry,delEntry,startEdit,cancelEdit,fetchMarketPrices,loadLastMarketPrices,exportXLSX,addAsset,removeAsset,toggleInstrumentForm,toggleShowAllRows,toggleTheme});await loadAll();await loadLastMarketPrices();supabase.auth.onAuthStateChange(async()=>{await loadAll();await loadLastMarketPrices()})
 </script>
 </body>
 </html>
