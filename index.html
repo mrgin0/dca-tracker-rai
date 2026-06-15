@@ -22,12 +22,12 @@
   <div class="card instrument-panel" id="instrument-panel"><h3>Tambah Instrumen Baru</h3><div class="form-grid"><div class="form-field"><label>Kode asset</label><input id="asset-symbol" placeholder="cth: GOLD atau GLD" /></div><div class="form-field"><label>Nama asset</label><input id="asset-name" placeholder="cth: Gold ETF" /></div><div class="form-field"><label>Unit</label><input id="asset-unit" placeholder="cth: unit / gram / oz" /></div><div class="form-field"><label>Yahoo ticker optional</label><input id="asset-yahoo" placeholder="cth: GLD atau GC=F" /></div></div><div class="btn-row"><button class="btn primary" onclick="addAsset()">+ Tambah Instrumen</button><button class="btn" onclick="toggleInstrumentForm(false)">Batal</button></div><p class="muted" style="margin-top:10px;">Instrumen custom disimpan di Supabase kalau lu login. Kalau Yahoo ticker kosong, harga pasar lu isi manual.</p></div>
   <div id="tab-content"></div>
   <div class="dashboard-grid"><div class="card" id="chart-section"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px"><div><h3 style="margin-bottom:2px">Ringkasan Portofolio</h3><p>Akumulasi investasi & unrealized gain per bulan.</p></div><div style="display:flex;gap:16px;font-size:12px;color:#555"><span><span style="width:24px;height:3px;background:#378ADD;border-radius:2px;display:inline-block;margin-right:6px"></span>Total Investasi</span><span><span style="width:24px;height:3px;background:#1D9E75;border-radius:2px;display:inline-block;margin-right:6px"></span>Unrealized Gain/Loss</span></div></div><div id="chart-empty" class="empty"><i class="fa-regular fa-chart-bar"></i>Tambahkan transaksi & isi harga pasar untuk melihat grafik</div><div class="chart-wrap" id="chart-wrapper"><canvas id="portfolioChart"></canvas></div></div><div class="card"><h3>Pie Chart Alokasi Asset</h3><div id="pie-empty" class="empty"><i class="fa-solid fa-chart-pie"></i>Belum ada data investasi</div><div class="pie-wrap hidden" id="pie-wrapper"><canvas id="assetPieChart"></canvas></div><div class="asset-mini-list" id="asset-mini-list"></div></div></div>
-  <div class="card bottom-actions"><button class="btn" onclick="exportXLSX()"><i class="fa-regular fa-file-excel"></i> Export .xlsx</button></div>
+  <div class="card bottom-actions"><span class="muted" style="margin-right:10px;vertical-align:middle;">download data</span><button class="btn" onclick="exportXLSX()"><i class="fa-regular fa-file-excel"></i> Export .xlsx</button></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // ISI 2 BAGIAN INI DOANG.
 const supabaseUrl = 'https://skdsddfefkipvhwwhgpr.supabase.co'
@@ -41,16 +41,77 @@ function assetOf(s){return assets.find(a=>a.symbol===s)||assets[0]} function fmt
 function toggleAuth(){document.getElementById('auth-panel').classList.toggle('show')} function setLoading(msg){document.getElementById('tab-content').innerHTML=`<div class="card"><div class="empty"><i class="fa-solid fa-circle-notch fa-spin"></i>${msg}</div></div>`}
 async function refreshUser(){const {data:authData}=await supabase.auth.getUser();currentUser=authData?.user||null;const pill=document.getElementById('user-pill'),loginBtn=document.getElementById('show-auth-btn'),logoutBtn=document.getElementById('logout-btn');if(currentUser){pill.textContent=currentUser.email;pill.style.display='inline-block';loginBtn.classList.add('hidden');logoutBtn.classList.remove('hidden');document.getElementById('auth-panel').classList.remove('show')}else{pill.style.display='none';loginBtn.classList.remove('hidden');logoutBtn.classList.add('hidden')}}
 async function signIn(){const email=document.getElementById('auth-email').value.trim(),password=document.getElementById('auth-password').value;if(!email||!password)return alert('Isi email dan password dulu.');const {error}=await supabase.auth.signInWithPassword({email,password});if(error)return alert(error.message);await refreshUser();await loadAll();await fetchMarketPrices(false)} async function signOut(){await supabase.auth.signOut();await refreshUser();assets=[...DEFAULT_ASSETS];data={};initData();renderAll()}
-async function loadAssets(){assets=[...DEFAULT_ASSETS];if(!currentUser){initData();return}const {data:rows,error}=await supabase.from('user_assets').select('*').order('created_at',{ascending:true});if(!error&&rows){rows.forEach(r=>{if(!assets.some(a=>a.symbol===r.symbol))assets.push({id:r.id,symbol:r.symbol,name:r.name||r.symbol,unit:r.unit||'unit',yahoo:r.yahoo_ticker||'',isDefault:false})})}initData()}
+async function loadAssets(){
+  assets=[...DEFAULT_ASSETS];
+  if(!currentUser){initData();return}
+  const {data:rows,error}=await supabase.from('user_assets').select('*').order('created_at',{ascending:true});
+  if(error){
+    console.warn('user_assets belum siap:', error.message);
+    document.getElementById('price-hint').textContent='Catatan: tabel user_assets belum ada. Jalankan SQL tambahan dulu agar Tambah Instrumen bisa disimpan.';
+    initData();
+    return;
+  }
+  if(rows){rows.forEach(r=>{if(!assets.some(a=>a.symbol===r.symbol))assets.push({id:r.id,symbol:r.symbol,name:r.name||r.symbol,unit:r.unit||'unit',yahoo:r.yahoo_ticker||'',isDefault:false})})}
+  initData();
+}
 async function loadTransactions(){if(!currentUser){initData();return}setLoading('Loading data dari Supabase...');const {data:rows,error}=await supabase.from('transactions').select('*').order('tanggal',{ascending:true});if(error){alert(error.message);initData();return}initData();(rows||[]).forEach(row=>{if(!data[row.asset])data[row.asset]=[];data[row.asset].push({id:row.id,tanggal:row.tanggal,hargaBeli:Number(row.harga_beli),jumlahUnit:Number(row.jumlah_unit),totalBeli:Number(row.total_beli)})})}
 async function loadAll(){await refreshUser();await loadAssets();await loadTransactions();renderAll()}
-function renderPriceRows(){document.getElementById('price-rows').innerHTML=assets.map(a=>`<div class="price-row"><label class="${a.symbol==='QQQM'?'qqqm':a.symbol==='VWRA'?'vwra':a.symbol==='BTC'?'btc':'custom'}">${a.symbol}</label><span class="muted">$</span><input type="number" id="price-${safeId(a.symbol)}" placeholder="0.00" min="0" step="0.01" oninput="onPriceChange()"><span class="muted">/${a.unit}</span>${!a.isDefault?`<button class="btn sm danger" onclick="removeAsset('${a.symbol}')" title="Hapus asset"><i class="fa fa-trash"></i></button>`:''}</div>`).join('')}
+function renderPriceRows(){document.getElementById('price-rows').innerHTML=assets.map(a=>`<div class="price-row"><label class="${a.symbol==='QQQM'?'qqqm':a.symbol==='VWRA'?'vwra':a.symbol==='BTC'?'btc':'custom'}">${a.symbol}</label><span class="muted">$</span><input type="number" id="price-${safeId(a.symbol)}" placeholder="0.00" min="0" step="0.01" oninput="onPriceChange()"><span class="muted">/${a.unit}</span></div>`).join('')}
 function renderTabs(){document.getElementById('tabs').innerHTML=assets.map(a=>`<button class="tab ${a.symbol===currentTab?'active':''}" onclick="switchTab('${a.symbol}')">${a.symbol}</button>`).join('')+`<button class="tab add-instrument" onclick="toggleInstrumentForm()"><i class="fa fa-plus"></i> Tambah Instrumen</button>`}
 function renderInstrumentPanel(){const el=document.getElementById('instrument-panel');if(!el)return;el.classList.toggle('show',showInstrumentForm)} function renderAll(){if(!assets.some(a=>a.symbol===currentTab))currentTab=assets[0]?.symbol||'QQQM';renderPriceRows();renderTabs();renderInstrumentPanel();renderContent();renderPieChart()}
 function toggleInstrumentForm(force){showInstrumentForm=typeof force==='boolean'?force:!showInstrumentForm;renderInstrumentPanel()}
-async function addAsset(){if(!currentUser)return alert('Login dulu bro.');const symbol=document.getElementById('asset-symbol').value.trim().toUpperCase(),name=document.getElementById('asset-name').value.trim(),unit=document.getElementById('asset-unit').value.trim()||'unit',yahoo=document.getElementById('asset-yahoo').value.trim();if(!symbol)return alert('Kode asset wajib diisi.');if(assets.some(a=>a.symbol===symbol))return alert('Asset sudah ada.');const {error}=await supabase.from('user_assets').insert({user_id:currentUser.id,symbol,name:name||symbol,unit,yahoo_ticker:yahoo});if(error)return alert(error.message);document.getElementById('asset-symbol').value='';document.getElementById('asset-name').value='';document.getElementById('asset-unit').value='';document.getElementById('asset-yahoo').value='';showInstrumentForm=false;showAllRows[symbol]=false;await loadAll();currentTab=symbol;renderAll();await fetchMarketPrices(false)}
-async function removeAsset(symbol){if(DEFAULT_ASSETS.some(a=>a.symbol===symbol))return alert('Asset default tidak bisa dihapus.');if((data[symbol]||[]).length>0)return alert('Asset ini masih punya transaksi. Hapus transaksi dulu kalau mau hapus asset.');if(!confirm('Hapus asset ini?'))return;const a=assetOf(symbol);if(a.id){const {error}=await supabase.from('user_assets').delete().eq('id',a.id);if(error)return alert(error.message)}await loadAll()}
-async function fetchMarketPrices(force){try{const blankAssets=assets.filter(a=>a.yahoo&&(force||!getPrice(a.symbol)));if(!blankAssets.length)return;const symbols=blankAssets.map(a=>`${encodeURIComponent(a.symbol)}:${encodeURIComponent(a.yahoo)}`).join(',');const res=await fetch(`${supabaseUrl}/functions/v1/get-prices?symbols=${symbols}`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});const json=await res.json();if(!json.success)throw new Error(json.error||'Gagal ambil harga pasar');Object.entries(json.prices||{}).forEach(([symbol,price])=>{const el=document.getElementById('price-'+safeId(symbol));if(el&&price&&(force||!el.value))el.value=Number(price).toFixed(symbol==='BTC'?2:4)});document.getElementById('price-hint').textContent=`Harga otomatis update: ${new Date().toLocaleString('id-ID')}`;renderContent();renderPieChart()}catch(e){console.warn(e);document.getElementById('price-hint').textContent='Harga otomatis gagal. Pastikan Edge Function get-prices sudah dibuat dan deploy.'}}
+async function addAsset(){
+  if(!currentUser)return alert('Login dulu bro.');
+  const symbol=document.getElementById('asset-symbol').value.trim().toUpperCase(),name=document.getElementById('asset-name').value.trim(),unit=document.getElementById('asset-unit').value.trim()||'unit',yahoo=document.getElementById('asset-yahoo').value.trim();
+  if(!symbol)return alert('Kode asset wajib diisi.');
+  if(assets.some(a=>a.symbol===symbol))return alert('Asset sudah ada.');
+  const {error}=await supabase.from('user_assets').insert({user_id:currentUser.id,symbol,name:name||symbol,unit,yahoo_ticker:yahoo});
+  if(error){
+    if(String(error.message||'').includes('user_assets')) return alert('Tabel user_assets belum ada di Supabase. Jalankan SQL tambahan yang gua kirim dulu, lalu coba lagi.');
+    return alert(error.message);
+  }
+  document.getElementById('asset-symbol').value='';document.getElementById('asset-name').value='';document.getElementById('asset-unit').value='';document.getElementById('asset-yahoo').value='';
+  showInstrumentForm=false;showAllRows[symbol]=false;
+  await loadAll();currentTab=symbol;renderAll();await fetchMarketPrices(false);
+}
+async function removeAsset(symbol){
+  if(DEFAULT_ASSETS.some(a=>a.symbol===symbol))return alert('Asset default tidak bisa dihapus.');
+  const trxCount=(data[symbol]||[]).length;
+  if(trxCount>0)return alert(`Instrumen ${symbol} masih punya ${trxCount} transaksi. Hapus transaksi dulu kalau mau hapus instrumen ini.`);
+  const a=assetOf(symbol);
+  if(!confirm(`Yakin hapus instrumen ${symbol}?
+
+Data instrumen akan hilang dari daftar asset. Transaksi tidak ikut dihapus.`))return;
+  if(a.id){const {error}=await supabase.from('user_assets').delete().eq('id',a.id);if(error)return alert(error.message)}
+  await loadAll();
+}
+async function fetchMarketPrices(force){
+  const hint=document.getElementById('price-hint');
+  try{
+    const targetAssets=assets.filter(a=>a.yahoo&&(force||!getPrice(a.symbol)));
+    if(!targetAssets.length){hint.textContent='Semua harga sudah terisi. Kosongkan field harga kalau mau auto isi lagi, atau klik force refresh.';return;}
+    hint.textContent='Mengambil harga otomatis...';
+    const symbols=targetAssets.map(a=>`${encodeURIComponent(a.symbol)}:${encodeURIComponent(a.yahoo)}`).join(',');
+    const res=await fetch(`${supabaseUrl}/functions/v1/get-prices?symbols=${symbols}`,{headers:{apikey:supabaseKey,Authorization:`Bearer ${supabaseKey}`}});
+    if(!res.ok){
+      const text=await res.text().catch(()=>String(res.status));
+      throw new Error(`Edge Function error ${res.status}: ${text}`);
+    }
+    const json=await res.json();
+    if(!json.success)throw new Error(json.error||'Gagal ambil harga pasar');
+    let filled=0;
+    Object.entries(json.prices||{}).forEach(([symbol,price])=>{
+      const el=document.getElementById('price-'+safeId(symbol));
+      if(el&&price&&(force||!Number(el.value))){el.value=Number(price).toFixed(symbol==='BTC'?2:4);filled++;}
+    });
+    hint.textContent=filled?`Harga otomatis update: ${new Date().toLocaleString('id-ID')}`:'Harga otomatis terbaca, tapi tidak ada harga valid dari Yahoo untuk ticker yang dipakai.';
+    renderContent();renderPieChart();
+  }catch(e){
+    console.warn(e);
+    hint.textContent='Harga otomatis gagal. Cek Edge Function get-prices, pastikan sudah deploy dan kodenya versi terbaru.';
+    alert('Harga otomatis gagal: '+(e.message||e));
+  }
+}
 function calcAsset(s){const cp=getPrice(s),entries=data[s]||[];let totalCost=0,totalUnits=0;entries.forEach(e=>{totalCost+=e.totalBeli;totalUnits+=e.jumlahUnit});const avgPrice=totalUnits>0?totalCost/totalUnits:0,currentVal=cp?totalUnits*cp:null,gain=currentVal!==null?currentVal-totalCost:null,pct=gain!==null&&totalCost>0?gain/totalCost*100:null;return{totalCost,totalUnits,avgPrice,currentVal,gain,pct}}
 function calcAll(){let totalInvest=0,totalNow=0,txCount=0,hasPrice=false;assets.forEach(a=>{const c=calcAsset(a.symbol);totalInvest+=c.totalCost;txCount+=(data[a.symbol]||[]).length;if(c.currentVal!==null){totalNow+=c.currentVal;hasPrice=true}});const gain=totalNow-totalInvest,pct=totalInvest>0&&hasPrice?gain/totalInvest*100:null;document.getElementById('s-total').textContent=fmt(totalInvest);document.getElementById('s-now').textContent=hasPrice?fmt(totalNow):'—';const gEl=document.getElementById('s-gain');gEl.textContent=hasPrice?fmt(gain):'—';gEl.className='metric-value'+(hasPrice?(gain>=0?' positive':' negative'):'');document.getElementById('s-pct').textContent=pct!==null?fmtPct(pct):'Isi harga pasar untuk melihat';document.getElementById('s-tx').textContent=txCount;renderChart();renderPieChart()}
 function onPriceChange(){renderContent()} function switchTab(t){currentTab=t;editIdx=null;renderTabs();renderContent()}
@@ -75,7 +136,7 @@ function renderContent(){
     const toggleBtn=entries.length>5?`<div class="btn-row" style="justify-content:center;margin-top:14px"><button class="btn" onclick="toggleShowAllRows('${a.symbol}')">${expanded?'Tampilkan 5 baris saja':'Tampilkan semua data'} (${entries.length})</button></div>`:'';
     tableHtml=`<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Harga Beli</th><th>Jumlah</th><th>Total Beli</th><th>Unrealized Gain</th><th>%</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${toggleBtn}`;
   }
-  document.getElementById('tab-content').innerHTML=`<div class="card"><h3>${isEdit?'Edit Transaksi':'Tambah Transaksi DCA'} — ${a.name}</h3><div class="form-grid"><div class="form-field"><label>Tanggal pembelian</label><input type="date" id="f-tanggal" value="${isEdit?ed.tanggal:new Date().toISOString().slice(0,10)}"></div><div class="form-field"><label>Harga beli per ${a.unit} ($)</label><input type="number" id="f-harga" placeholder="cth: 480.50" min="0" step="0.01" value="${isEdit?ed.hargaBeli:''}" oninput="autoCalc()"></div><div class="form-field"><label>Jumlah / qty</label><input type="number" id="f-unit" placeholder="cth: 1.5" min="0" step="any" value="${isEdit?ed.jumlahUnit:''}" oninput="autoCalc()"></div><div class="form-field"><label>Total beli ($) <span class="muted">— otomatis dari harga × qty</span></label><input type="number" id="f-total" placeholder="Atau isi manual" min="0" step="0.01" value="${isEdit?ed.totalBeli:''}" oninput="autoCalcFromTotal()"></div></div><div class="btn-row"><button class="btn primary" onclick="saveEntry('${a.symbol}')">${isEdit?'Simpan Perubahan':'+ Tambah Pembelian'}</button>${isEdit?`<button class="btn" onclick="cancelEdit()">Batal</button>`:''}</div></div>${assetSummaryHtml}<div class="card">${tableHtml}</div>`;
+  document.getElementById('tab-content').innerHTML=`<div class="card"><h3>${isEdit?'Edit Transaksi':'Tambah Transaksi DCA'} — ${a.name}</h3><div class="form-grid"><div class="form-field"><label>Tanggal pembelian</label><input type="date" id="f-tanggal" value="${isEdit?ed.tanggal:new Date().toISOString().slice(0,10)}"></div><div class="form-field"><label>Harga beli per ${a.unit} ($)</label><input type="number" id="f-harga" placeholder="cth: 480.50" min="0" step="0.01" value="${isEdit?ed.hargaBeli:''}" oninput="autoCalc()"></div><div class="form-field"><label>Jumlah / qty</label><input type="number" id="f-unit" placeholder="cth: 1.5" min="0" step="any" value="${isEdit?ed.jumlahUnit:''}" oninput="autoCalc()"></div><div class="form-field"><label>Total beli ($) <span class="muted">— otomatis dari harga × qty</span></label><input type="number" id="f-total" placeholder="Atau isi manual" min="0" step="0.01" value="${isEdit?ed.totalBeli:''}" oninput="autoCalcFromTotal()"></div></div><div class="btn-row"><button class="btn primary" onclick="saveEntry('${a.symbol}')">${isEdit?'Simpan Perubahan':'+ Tambah Pembelian'}</button>${!a.isDefault?`<button class="btn danger" onclick="removeAsset('${a.symbol}')"><i class="fa fa-trash"></i> Hapus Instrumen</button>`:''}${isEdit?`<button class="btn" onclick="cancelEdit()">Batal</button>`:''}</div></div>${assetSummaryHtml}<div class="card">${tableHtml}</div>`;
   calcAll();
 }
 function toggleShowAllRows(symbol){showAllRows[symbol]=!showAllRows[symbol];renderContent()}
