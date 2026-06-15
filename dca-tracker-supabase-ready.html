@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DCA Tracker — Supabase</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f5f5f2; color:#111; min-height:100vh; }
+  .container { max-width:900px; margin:0 auto; padding:2rem 1rem; }
+  h1 { font-size:22px; font-weight:700; }
+  h1 span { font-size:13px; font-weight:400; color:#6f7782; margin-left:8px; }
+  p { font-size:13px; color:#7b8490; }
+  .card, .prices-card, .metric { background:#fff; border:1px solid #dfdfdc; border-radius:12px; }
+  .card { padding:1rem 1.25rem; margin-bottom:1rem; }
+  .card h3, .prices-card h3 { font-size:12px; font-weight:700; color:#7b8490; text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px; }
+  .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.35rem; }
+  .auth-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+  .user-pill { font-size:12px; color:#6f7782; background:#fff; border:1px solid #dfdfdc; border-radius:999px; padding:7px 12px; display:none; }
+  .auth-panel { display:none; }
+  .auth-panel.show { display:block; }
+  .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin:1.25rem 0; }
+  .metric { padding:14px 16px; min-height:90px; }
+  .metric-label { font-size:11px; color:#7b8490; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+  .metric-value { font-size:21px; font-weight:700; }
+  .metric-sub { font-size:12px; color:#9aa1aa; margin-top:3px; }
+  .positive { color:#007d5f !important; }
+  .negative { color:#b42318 !important; }
+  .prices-card { padding:1rem 1.25rem; margin-bottom:1.25rem; }
+  .price-rows { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; }
+  .price-row { display:flex; align-items:center; gap:8px; background:#f9f9f7; border-radius:9px; padding:8px 10px; }
+  .price-row label { font-size:13px; font-weight:700; min-width:50px; }
+  .qqq { color:#185FA5; } .vwra { color:#3B6D11; } .btc { color:#854F0B; }
+  input { border:1px solid #d8d8d5; border-radius:7px; padding:8px 10px; font-size:14px; background:#fff; color:#111; width:100%; }
+  input:focus { outline:none; border-color:#9eb9e8; box-shadow:0 0 0 3px rgba(80,130,200,.12); }
+  .price-row input { width:110px; padding:5px 8px; }
+  .price-hint { font-size:11px; color:#9aa1aa; margin-top:9px; }
+  .tabs { display:flex; gap:8px; margin-bottom:1.25rem; }
+  .tab { padding:7px 18px; border-radius:8px; border:1px solid #d8d8d5; background:#fff; color:#6f7782; font-size:13px; cursor:pointer; }
+  .tab.active.qqq { background:#e8f2ff; border-color:#bcd8f4; color:#185FA5; }
+  .tab.active.vwra { background:#eff9e5; border-color:#bddd9b; color:#3B6D11; }
+  .tab.active.btc { background:#fff1dc; border-color:#f4c276; color:#854F0B; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .form-field { display:flex; flex-direction:column; gap:5px; }
+  .form-field label { font-size:12px; color:#4f5b66; }
+  .btn-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .btn { padding:8px 16px; border-radius:7px; border:1px solid #d8d8d5; background:#fff; color:#222; font-size:13px; cursor:pointer; font-family:inherit; }
+  .btn:hover { background:#f5f5f2; }
+  .btn.primary { background:#111; color:#fff; border-color:#111; }
+  .btn.primary:hover { background:#333; }
+  .btn.danger { color:#b42318; border-color:transparent; background:transparent; }
+  .btn.sm { padding:5px 10px; font-size:12px; }
+  .asset-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-bottom:1rem; }
+  .asset-metric { background:#fff; border-radius:9px; padding:12px; }
+  .asset-metric .label { font-size:11px; color:#8b939d; margin-bottom:4px; }
+  .asset-metric .value { font-size:15px; font-weight:700; }
+  .asset-metric .sub { font-size:11px; color:#9aa1aa; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:12px 10px; color:#7b8490; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid #eee; }
+  td { padding:12px 10px; border-bottom:1px solid #f1f1ef; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#fafaf8; }
+  .empty { text-align:center; padding:2.5rem; color:#9aa1aa; font-size:13px; }
+  .empty i { font-size:28px; display:block; margin-bottom:10px; }
+  .muted { color:#9aa1aa; font-size:12px; }
+  .hidden { display:none !important; }
+  @media (max-width:600px) { .form-grid,.summary-grid,.price-rows { grid-template-columns:1fr; } .topbar{display:block}.auth-actions{justify-content:flex-start;margin-top:12px} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div>
+      <h1>DCA Tracker <span>Portofolio Bulanan</span></h1>
+      <p style="margin-top:4px;">Catat pembelian rutin & pantau unrealized gain portofolio kamu</p>
+    </div>
+    <div class="auth-actions">
+      <span class="user-pill" id="user-pill"></span>
+      <button class="btn" id="show-auth-btn" onclick="toggleAuth()">Login / Daftar</button>
+      <button class="btn danger hidden" id="logout-btn" onclick="signOut()">Logout</button>
+    </div>
+  </div>
+
+  <div class="card auth-panel" id="auth-panel">
+    <h3>Akun Supabase</h3>
+    <div class="form-grid">
+      <div class="form-field"><label>Email</label><input type="email" id="auth-email" placeholder="email lu" /></div>
+      <div class="form-field"><label>Password</label><input type="password" id="auth-password" placeholder="minimal 6 karakter" /></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="signIn()">Login</button>
+      <button class="btn" onclick="signUp()">Daftar</button>
+    </div>
+    <p class="muted" style="margin-top:10px;">Kalau Supabase lu aktifkan email confirmation, cek inbox dulu setelah daftar.</p>
+  </div>
+
+  <div class="summary-grid">
+    <div class="metric"><div class="metric-label">Total Investasi</div><div class="metric-value" id="s-total">$0</div></div>
+    <div class="metric"><div class="metric-label">Nilai Sekarang</div><div class="metric-value" id="s-now">—</div></div>
+    <div class="metric"><div class="metric-label">Unrealized Gain/Loss</div><div class="metric-value" id="s-gain">—</div><div class="metric-sub" id="s-pct">Isi harga pasar untuk melihat</div></div>
+    <div class="metric"><div class="metric-label">Total Transaksi</div><div class="metric-value" id="s-tx">0</div></div>
+  </div>
+
+  <div class="prices-card">
+    <h3>Harga Pasar Saat Ini</h3>
+    <div class="price-rows">
+      <div class="price-row"><label class="qqq">QQQ</label><span class="muted">$</span><input type="number" id="price-QQQ" placeholder="0.00" min="0" step="0.01" oninput="onPriceChange()"><span class="muted">/unit</span></div>
+      <div class="price-row"><label class="vwra">VWRA</label><span class="muted">$</span><input type="number" id="price-VWRA" placeholder="0.00" min="0" step="0.01" oninput="onPriceChange()"><span class="muted">/unit</span></div>
+      <div class="price-row"><label class="btc">BTC</label><span class="muted">$</span><input type="number" id="price-BTC" placeholder="0.00" min="0" step="0.01" oninput="onPriceChange()"><span class="muted">/BTC</span></div>
+    </div>
+    <p class="price-hint">* Masukkan harga terkini untuk menghitung unrealized gain/loss secara otomatis</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active qqq" onclick="switchTab('QQQ')">QQQ</button>
+    <button class="tab vwra" onclick="switchTab('VWRA')">VWRA</button>
+    <button class="tab btc" onclick="switchTab('BTC')">Bitcoin</button>
+  </div>
+
+  <div id="tab-content"></div>
+
+  <div class="card" id="chart-section" style="margin-top:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+      <div><h3 style="margin-bottom:2px;">Ringkasan Portofolio</h3><p>Akumulasi investasi &amp; unrealized gain per bulan (semua aset gabungan)</p></div>
+      <div style="display:flex;gap:16px;font-size:12px;color:#555;">
+        <span><span style="width:24px;height:3px;background:#378ADD;border-radius:2px;display:inline-block;margin-right:6px;"></span>Total Investasi</span>
+        <span><span style="width:24px;height:3px;background:#1D9E75;border-radius:2px;display:inline-block;margin-right:6px;"></span>Unrealized Gain/Loss</span>
+      </div>
+    </div>
+    <div id="chart-empty" class="empty"><i class="fa-regular fa-chart-bar"></i>Tambahkan transaksi &amp; isi harga pasar untuk melihat grafik</div>
+    <div style="position:relative;width:100%;height:300px;display:none;" id="chart-wrapper"><canvas id="portfolioChart"></canvas></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+// ISI 2 BAGIAN INI DOANG, RAI.
+const supabaseUrl = 'https://skdsddfefkipvhwwhgpr.supabase.co/rest/v1/'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrZHNkZGZlZmtpcHZod3doZ3ByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTY1ODAsImV4cCI6MjA5NzAzMjU4MH0.teq1q3a6zUke8MRfDz5ULIpS6DEwivknKmsrlXdH_zw'
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+const ASSETS = ['QQQ','VWRA','BTC']
+const LABELS = { QQQ:'QQQ (Invesco QQQ Trust)', VWRA:'VWRA (Vanguard FTSE All-World)', BTC:'Bitcoin (BTC)' }
+const UNIT_LABEL = { QQQ:'unit', VWRA:'unit', BTC:'BTC' }
+let currentTab = 'QQQ'
+let editIdx = null
+let data = { QQQ:[], VWRA:[], BTC:[] }
+let portfolioChartInstance = null
+let currentUser = null
+
+function fmt(n, dec=2){ if(n===null||isNaN(n))return '—'; return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}) }
+function fmtN(n, dec=6){ if(n===null||isNaN(n))return '—'; return Number(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:dec}) }
+function fmtPct(n){ if(n===null||isNaN(n))return '—'; return (n>=0?'+':'')+Number(n).toFixed(2)+'%' }
+function getPrice(a){ const v=parseFloat(document.getElementById('price-'+a)?.value); return isNaN(v)||v<=0?null:v }
+
+function setLoading(msg){ document.getElementById('tab-content').innerHTML = `<div class="card"><div class="empty"><i class="fa-solid fa-circle-notch fa-spin"></i>${msg}</div></div>` }
+function resetData(){ data={QQQ:[],VWRA:[],BTC:[]}; editIdx=null; renderContent() }
+function toggleAuth(){ document.getElementById('auth-panel').classList.toggle('show') }
+
+async function refreshUser(){
+  const { data: authData } = await supabase.auth.getUser()
+  currentUser = authData?.user || null
+  const pill = document.getElementById('user-pill')
+  const loginBtn = document.getElementById('show-auth-btn')
+  const logoutBtn = document.getElementById('logout-btn')
+  if(currentUser){
+    pill.textContent = currentUser.email
+    pill.style.display = 'inline-block'
+    loginBtn.classList.add('hidden')
+    logoutBtn.classList.remove('hidden')
+    document.getElementById('auth-panel').classList.remove('show')
+  } else {
+    pill.style.display = 'none'
+    loginBtn.classList.remove('hidden')
+    logoutBtn.classList.add('hidden')
+  }
+}
+
+async function signUp(){
+  const email=document.getElementById('auth-email').value.trim()
+  const password=document.getElementById('auth-password').value
+  if(!email||!password) return alert('Isi email dan password dulu.')
+  const { error } = await supabase.auth.signUp({ email, password })
+  if(error) return alert(error.message)
+  alert('Akun dibuat. Kalau diminta konfirmasi, cek email dulu ya.')
+  await refreshUser(); await loadTransactions()
+}
+async function signIn(){
+  const email=document.getElementById('auth-email').value.trim()
+  const password=document.getElementById('auth-password').value
+  if(!email||!password) return alert('Isi email dan password dulu.')
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if(error) return alert(error.message)
+  await refreshUser(); await loadTransactions()
+}
+async function signOut(){ await supabase.auth.signOut(); await refreshUser(); resetData() }
+
+async function loadTransactions(){
+  await refreshUser()
+  if(!currentUser){ resetData(); return }
+  setLoading('Loading data dari Supabase...')
+  const { data: rows, error } = await supabase.from('transactions').select('*').order('tanggal',{ascending:true})
+  if(error){ alert(error.message); resetData(); return }
+  data={QQQ:[],VWRA:[],BTC:[]}
+  ;(rows||[]).forEach(row=>{
+    if(!data[row.asset]) data[row.asset]=[]
+    data[row.asset].push({ id:row.id, tanggal:row.tanggal, hargaBeli:Number(row.harga_beli), jumlahUnit:Number(row.jumlah_unit), totalBeli:Number(row.total_beli) })
+  })
+  renderContent()
+}
+
+function calcAsset(a){
+  const cp=getPrice(a), entries=data[a]||[]
+  let totalCost=0,totalUnits=0
+  entries.forEach(e=>{ totalCost+=e.totalBeli; totalUnits+=e.jumlahUnit })
+  const avgPrice=totalUnits>0?totalCost/totalUnits:0
+  const currentVal=cp?totalUnits*cp:null
+  const gain=currentVal!==null?currentVal-totalCost:null
+  const pct=gain!==null&&totalCost>0?gain/totalCost*100:null
+  return {totalCost,totalUnits,avgPrice,currentVal,gain,pct}
+}
+function calcAll(){
+  let totalInvest=0,totalNow=0,txCount=0,hasPrice=false
+  ASSETS.forEach(a=>{ const c=calcAsset(a); totalInvest+=c.totalCost; txCount+=(data[a]||[]).length; if(c.currentVal!==null){totalNow+=c.currentVal; hasPrice=true} })
+  const gain=totalNow-totalInvest
+  const pct=totalInvest>0&&hasPrice?gain/totalInvest*100:null
+  document.getElementById('s-total').textContent=fmt(totalInvest)
+  document.getElementById('s-now').textContent=hasPrice?fmt(totalNow):'—'
+  const gEl=document.getElementById('s-gain')
+  gEl.textContent=hasPrice?fmt(gain):'—'
+  gEl.className='metric-value'+(hasPrice?(gain>=0?' positive':' negative'):'')
+  document.getElementById('s-pct').textContent=pct!==null?fmtPct(pct):'Isi harga pasar untuk melihat'
+  document.getElementById('s-tx').textContent=txCount
+  renderChart()
+}
+function onPriceChange(){ renderContent() }
+function switchTab(t){
+  currentTab=t; editIdx=null
+  ASSETS.forEach((a,i)=>{ const cls=['qqq','vwra','btc'][i]; document.querySelectorAll('.tab')[i].className='tab '+cls+(a===t?' active':'') })
+  renderContent()
+}
+function renderContent(){
+  const a=currentTab, entries=data[a]||[], calc=calcAsset(a), cp=getPrice(a), isEdit=editIdx!==null, ed=isEdit?entries[editIdx]:null
+  let assetSummaryHtml=''
+  if(entries.length>0){ const gcls=calc.gain!==null?(calc.gain>=0?'positive':'negative'):''; assetSummaryHtml=`<div class="asset-summary"><div class="asset-metric"><div class="label">Total Unit</div><div class="value">${fmtN(calc.totalUnits,6)}</div><div class="sub">${UNIT_LABEL[a]}</div></div><div class="asset-metric"><div class="label">Avg Harga Beli</div><div class="value">${fmt(calc.avgPrice)}</div></div><div class="asset-metric"><div class="label">Total Investasi</div><div class="value">${fmt(calc.totalCost)}</div></div><div class="asset-metric"><div class="label">Nilai Sekarang</div><div class="value">${calc.currentVal!==null?fmt(calc.currentVal):'—'}</div></div><div class="asset-metric"><div class="label">Unrealized Gain/Loss</div><div class="value ${gcls}">${calc.gain!==null?fmt(calc.gain):'—'}</div><div class="sub ${gcls}">${calc.pct!==null?fmtPct(calc.pct):'—'}</div></div></div>` }
+  let tableHtml=''
+  if(entries.length===0){ tableHtml=`<div class="empty"><i class="fa-regular fa-folder-open"></i>${currentUser?'Belum ada transaksi. Tambahkan pembelian DCA pertamamu!':'Login dulu biar transaksi tersimpan ke Supabase.'}</div>` }
+  else { const rows=entries.map((e,i)=>{ const cv=cp?e.jumlahUnit*cp:null, ug=cv!==null?cv-e.totalBeli:null, up=ug!==null&&e.totalBeli>0?ug/e.totalBeli*100:null, gc=ug!==null?(ug>=0?'positive':'negative'):''; return `<tr><td>${e.tanggal}</td><td>${fmt(e.hargaBeli)}</td><td>${fmtN(e.jumlahUnit,6)} ${UNIT_LABEL[a]}</td><td>${fmt(e.totalBeli)}</td><td class="${gc}">${ug!==null?fmt(ug):'—'}</td><td class="${gc}" style="font-size:12px;">${up!==null?fmtPct(up):'—'}</td><td><button class="btn sm" onclick="startEdit('${a}',${i})" title="Edit"><i class="fa fa-pen"></i></button><button class="btn sm danger" onclick="delEntry('${a}',${i})" title="Hapus"><i class="fa fa-trash"></i></button></td></tr>` }).join(''); tableHtml=`<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Harga Beli</th><th>Jumlah</th><th>Total Beli</th><th>Unrealized Gain</th><th>%</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` }
+  document.getElementById('tab-content').innerHTML=`<div class="card"><h3>${isEdit?'Edit Transaksi':'Tambah Transaksi DCA'} — ${LABELS[a]}</h3><div class="form-grid"><div class="form-field"><label>Tanggal pembelian</label><input type="date" id="f-tanggal" value="${isEdit?ed.tanggal:new Date().toISOString().slice(0,10)}"></div><div class="form-field"><label>Harga beli per unit ($)</label><input type="number" id="f-harga" placeholder="cth: 480.50" min="0" step="0.01" value="${isEdit?ed.hargaBeli:''}" oninput="autoCalc()"></div><div class="form-field"><label>Jumlah unit / qty</label><input type="number" id="f-unit" placeholder="cth: 1.5" min="0" step="any" value="${isEdit?ed.jumlahUnit:''}" oninput="autoCalc()"></div><div class="form-field"><label>Total beli ($) <span class="muted">— otomatis dari harga × qty</span></label><input type="number" id="f-total" placeholder="Atau isi manual" min="0" step="0.01" value="${isEdit?ed.totalBeli:''}" oninput="autoCalcFromTotal()"></div></div><div class="btn-row"><button class="btn primary" onclick="saveEntry('${a}')">${isEdit?'Simpan Perubahan':'+ Tambah Pembelian'}</button>${isEdit?`<button class="btn" onclick="cancelEdit()">Batal</button>`:''}</div></div>${assetSummaryHtml}<div class="card">${tableHtml}</div>`
+  calcAll()
+}
+function autoCalc(){ const h=parseFloat(document.getElementById('f-harga')?.value), u=parseFloat(document.getElementById('f-unit')?.value); if(!isNaN(h)&&!isNaN(u)) document.getElementById('f-total').value=(h*u).toFixed(2) }
+function autoCalcFromTotal(){ const h=parseFloat(document.getElementById('f-harga')?.value), t=parseFloat(document.getElementById('f-total')?.value); if(!isNaN(h)&&h>0&&!isNaN(t)) document.getElementById('f-unit').value=(t/h).toFixed(6) }
+async function saveEntry(asset){
+  if(!currentUser) return alert('Login dulu bro, biar datanya masuk database.')
+  const tanggal=document.getElementById('f-tanggal').value, hargaBeli=parseFloat(document.getElementById('f-harga').value), jumlahUnit=parseFloat(document.getElementById('f-unit').value), totalBeli=parseFloat(document.getElementById('f-total').value)
+  if(!tanggal||isNaN(hargaBeli)||isNaN(jumlahUnit)||isNaN(totalBeli)) return alert('Lengkapi semua field dulu.')
+  if(editIdx!==null){ const id=data[asset][editIdx].id; const {error}=await supabase.from('transactions').update({tanggal,harga_beli:hargaBeli,jumlah_unit:jumlahUnit,total_beli:totalBeli}).eq('id',id); if(error) return alert(error.message); editIdx=null }
+  else { const {error}=await supabase.from('transactions').insert({user_id:currentUser.id,asset,tanggal,harga_beli:hargaBeli,jumlah_unit:jumlahUnit,total_beli:totalBeli}); if(error) return alert(error.message) }
+  await loadTransactions()
+}
+async function delEntry(asset,idx){ if(!confirm('Hapus transaksi ini?'))return; const id=data[asset][idx].id; const {error}=await supabase.from('transactions').delete().eq('id',id); if(error)return alert(error.message); if(editIdx===idx)editIdx=null; await loadTransactions() }
+function startEdit(asset,idx){ editIdx=idx; renderContent(); document.querySelector('.card')?.scrollIntoView({behavior:'smooth',block:'start'}) }
+function cancelEdit(){ editIdx=null; renderContent() }
+function buildChartData(){ const monthSet=new Set(); ASSETS.forEach(a=>(data[a]||[]).forEach(e=>monthSet.add(e.tanggal.slice(0,7)))); const months=Array.from(monthSet).sort(); if(!months.length)return null; const labels=[], investData=[], gainData=[]; months.forEach(m=>{ let cumCost=0,hasAllPrices=true,cumValue=0; ASSETS.forEach(a=>{ const cp=getPrice(a); if(!cp)hasAllPrices=false; (data[a]||[]).forEach(e=>{ if(e.tanggal.slice(0,7)<=m){cumCost+=e.totalBeli; if(cp)cumValue+=e.jumlahUnit*cp} }) }); const [y,mo]=m.split('-'), names=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']; labels.push(names[parseInt(mo)-1]+' '+y); investData.push(Number(cumCost.toFixed(2))); gainData.push(hasAllPrices?Number((cumValue-cumCost).toFixed(2)):null) }); return {labels,investData,gainData} }
+function renderChart(){ const d=buildChartData(), emptyEl=document.getElementById('chart-empty'), wrapEl=document.getElementById('chart-wrapper'); if(!d){ emptyEl.style.display='block'; wrapEl.style.display='none'; return } const hasGain=d.gainData.some(v=>v!==null); emptyEl.style.display=hasGain?'none':'block'; if(!hasGain) emptyEl.innerHTML='<i class="fa-regular fa-chart-bar"></i>Isi harga pasar ketiga aset untuk melihat unrealized gain di grafik'; wrapEl.style.display='block'; const ctx=document.getElementById('portfolioChart')?.getContext('2d'); if(!ctx)return; if(portfolioChartInstance){ portfolioChartInstance.data.labels=d.labels; portfolioChartInstance.data.datasets[0].data=d.investData; portfolioChartInstance.data.datasets[1].data=d.gainData; portfolioChartInstance.update(); return } portfolioChartInstance=new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[{label:'Total Investasi',data:d.investData,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#378ADD',pointBorderColor:'#fff',pointBorderWidth:2,fill:true,tension:.35},{label:'Unrealized Gain/Loss',data:d.gainData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',borderWidth:2.5,borderDash:[6,3],pointRadius:4,pointBackgroundColor:'#1D9E75',pointBorderColor:'#fff',pointBorderWidth:2,fill:true,tension:.35,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#aaa',font:{size:11},maxRotation:45,autoSkip:true,maxTicksLimit:12}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#aaa',font:{size:11},callback:v=>{if(Math.abs(v)>=1000)return(v<0?'-':'')+'$'+(Math.abs(v)/1000).toFixed(0)+'k';return(v<0?'-':'')+'$'+Math.abs(v).toFixed(0)}}}}}}) }
+
+Object.assign(window,{toggleAuth,signUp,signIn,signOut,onPriceChange,switchTab,autoCalc,autoCalcFromTotal,saveEntry,delEntry,startEdit,cancelEdit})
+await refreshUser(); await loadTransactions()
+supabase.auth.onAuthStateChange(async()=>{ await refreshUser(); await loadTransactions() })
+</script>
+</body>
+</html>
