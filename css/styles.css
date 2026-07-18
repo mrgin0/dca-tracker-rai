@@ -79,9 +79,10 @@ body {
 }
 
 .container {
-  max-width: 1080px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
-  padding: 0 clamp(1rem, 4vw, 2rem);
+  padding: 0 clamp(1.25rem, 4vw, 3.5rem);
 }
 
 .muted { color: var(--muted); }
@@ -100,14 +101,28 @@ body {
   border-bottom: 2px solid var(--champagne);
 }
 .masthead-inner {
-  max-width: 1080px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
-  padding: 1.25rem clamp(1rem, 4vw, 2rem);
+  padding: 1.1rem clamp(1.25rem, 4vw, 3.5rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
+.brand { display: flex; align-items: center; gap: .8rem; }
+.brand-logo {
+  width: 46px; height: 46px; flex: none;
+  border-radius: 12px;
+  border: 1px solid rgba(199, 169, 104, .55);
+  background: rgba(199, 169, 104, .1);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.brand-logo span { font-family: var(--serif); font-weight: 600; font-size: 24px; color: var(--champagne-soft); line-height: 1; }
+.brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+.brand-logo.lg { width: 64px; height: 64px; border-radius: 16px; }
+.brand-logo.lg span { font-size: 32px; }
 .brand-mark {
   font-family: var(--serif);
   font-weight: 600;
@@ -466,4 +481,73 @@ tr:hover td { background: var(--surface-2); }
   .panel { padding: 1.25rem; }
   .statement-item { padding: 1.1rem; }
   .statement-item:nth-child(odd) { border-left: none; padding-left: .25rem; }
+}
+
+/* ============ LOGIN VIEW ============ */
+.login-view {
+  min-height: calc(100vh - 78px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem 4rem;
+}
+.login-view[hidden] { display: none; }
+.login-card {
+  width: min(420px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 2.25rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.login-card .brand-logo { margin: 0 auto 1.1rem; }
+.login-card .brand-logo span { color: var(--champagne); }
+.login-title { font-family: var(--serif); font-size: 28px; font-weight: 600; margin-bottom: .35rem; }
+.login-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 1.5rem; }
+.login-card .field { text-align: left; margin-bottom: .85rem; }
+.btn-block { width: 100%; justify-content: center; margin-top: .5rem; padding: .7rem 1rem; }
+.link-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; color: var(--champagne);
+  margin-top: 1rem; padding: .4rem;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--champagne-soft); }
+
+/* ============ WIDE MODAL / FORM MODALS ============ */
+.app-modal.wide { width: min(580px, 100%); }
+.modal-grid { grid-template-columns: 1fr 1fr; gap: .85rem; margin-top: 1.1rem; }
+.app-modal textarea {
+  font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  padding: .6rem .7rem; background: var(--surface); color: var(--text);
+  width: 100%; resize: vertical;
+}
+.app-modal textarea:focus { outline: none; border-color: var(--champagne); box-shadow: 0 0 0 3px rgba(168, 133, 63, .14); }
+.app-modal .field { text-align: left; }
+
+/* Logo editor */
+.logo-editor {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem; margin-top: 1.1rem;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
+}
+.logo-preview { width: 56px; height: 56px; flex: none; }
+.logo-preview span { color: var(--champagne); }
+.logo-editor-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.logo-editor-actions label { cursor: pointer; }
+
+/* Scroll lock when a modal is open */
+body.modal-open { overflow: hidden; }
+
+/* ============ RESPONSIVE (login + narrow) ============ */
+@media (max-width: 560px) {
+  .modal-grid { grid-template-columns: 1fr; }
+  .login-card { padding: 1.75rem 1.35rem; }
+  .brand-logo { width: 40px; height: 40px; }
+  .brand-logo span { font-size: 20px; }
 }
