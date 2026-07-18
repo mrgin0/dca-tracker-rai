@@ -17,59 +17,62 @@
   <header class="masthead">
     <div class="masthead-inner">
       <div class="brand">
-        <div class="brand-mark">Meridian</div>
-        <div class="brand-tag">Private Wealth&nbsp;·&nbsp;Ledger DCA</div>
+        <div class="brand-logo" data-brand-logo><span data-monogram>M</span></div>
+        <div class="brand-text">
+          <div class="brand-mark" id="brand-mark">Meridian</div>
+          <div class="brand-tag" id="brand-tag">Private Wealth · Ledger DCA</div>
+        </div>
       </div>
       <nav class="masthead-actions">
         <button class="ghost-btn theme-toggle" id="theme-btn" type="button">
           <i class="fa-regular fa-moon"></i><span>Dark</span>
         </button>
-        <span class="user-pill" id="user-pill" hidden></span>
-        <button class="ghost-btn" id="show-auth-btn" type="button">Masuk</button>
+        <button class="ghost-btn" id="setting-btn" type="button" hidden>
+          <i class="fa-solid fa-gear"></i><span>Setting</span>
+        </button>
         <button class="ghost-btn ghost-danger" id="logout-btn" type="button" hidden>Keluar</button>
       </nav>
     </div>
   </header>
 
-  <main class="container">
-    <!-- ============ INTRO / AUTH ============ -->
+  <!-- ============ LOGIN VIEW (gate) ============ -->
+  <section class="login-view" id="login-view">
+    <div class="login-card">
+      <div class="brand-logo lg" data-brand-logo><span data-monogram>M</span></div>
+      <h1 class="login-title">Masuk ke akun</h1>
+      <p class="login-sub">Portofolio pribadi Anda, tersimpan aman.</p>
+      <label class="field">
+        <span>Email</span>
+        <input type="email" id="auth-email" autocomplete="email" placeholder="nama@email.com" />
+      </label>
+      <label class="field">
+        <span>Kata sandi</span>
+        <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" />
+      </label>
+      <button class="btn btn-primary btn-block" id="signin-btn" type="button">Masuk</button>
+      <button class="link-btn" id="forgot-btn" type="button">Lupa password?</button>
+    </div>
+  </section>
+
+  <!-- ============ APP VIEW ============ -->
+  <main class="container" id="app-view" hidden>
     <section class="intro">
-      <p class="eyebrow">Ringkasan Portofolio</p>
-      <h1 class="page-title">Akumulasi disiplin, dipantau dengan tenang.</h1>
-      <p class="lede">Catat setiap pembelian rutin, lihat valuasi terkini, dan pahami unrealized gain lintas instrumen dalam satu tampilan.</p>
+      <p class="eyebrow" id="intro-eyebrow">Ringkasan Portofolio</p>
+      <h1 class="page-title" id="intro-title">Akumulasi disiplin, dipantau dengan tenang.</h1>
+      <p class="lede" id="intro-lede">Catat setiap pembelian rutin, lihat valuasi terkini, dan pahami unrealized gain lintas instrumen dalam satu tampilan.</p>
     </section>
 
-    <div class="auth-panel" id="auth-panel" hidden>
-      <div class="auth-head">
-        <h3>Masuk ke akun</h3>
-        <p class="muted">Akun dibuat dari Firebase Console → Authentication → Users.</p>
-      </div>
-      <div class="field-grid">
-        <label class="field">
-          <span>Email</span>
-          <input type="email" id="auth-email" autocomplete="email" placeholder="nama@email.com" />
-        </label>
-        <label class="field">
-          <span>Kata sandi</span>
-          <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" />
-        </label>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="signin-btn" type="button">Masuk</button>
-      </div>
-    </div>
-
-    <!-- ============ STATEMENT SUMMARY ============ -->
+    <!-- STATEMENT SUMMARY -->
     <section class="statement" aria-label="Ringkasan nilai portofolio">
       <div class="statement-item">
         <span class="statement-label">Total Investasi</span>
         <span class="statement-value" id="s-total">$0</span>
-        <span class="statement-sub" id="s-total-sub">nilai pokok</span>
+        <span class="statement-sub">nilai pokok</span>
       </div>
       <div class="statement-item">
         <span class="statement-label">Nilai Sekarang</span>
         <span class="statement-value" id="s-now">—</span>
-        <span class="statement-sub" id="s-now-sub">valuasi pasar</span>
+        <span class="statement-sub">valuasi pasar</span>
       </div>
       <div class="statement-item">
         <span class="statement-label">Unrealized Gain / Loss</span>
@@ -83,7 +86,7 @@
       </div>
     </section>
 
-    <!-- ============ MARKET PRICES ============ -->
+    <!-- MARKET PRICES -->
     <section class="panel prices">
       <div class="panel-head">
         <div>
@@ -98,40 +101,19 @@
       <p class="hint" id="price-hint">Harga tersimpan hanya di sesi ini, tidak disimpan sebagai histori. Klik Ambil Data untuk memuat harga realtime.</p>
     </section>
 
-    <!-- ============ INSTRUMENT TABS ============ -->
+    <!-- TABS -->
     <nav class="tabs" id="tabs" aria-label="Pilih instrumen"></nav>
 
-    <!-- ============ ADD INSTRUMENT ============ -->
-    <div class="panel instrument-panel" id="instrument-panel" hidden>
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">Instrumen Baru</p>
-          <h2 class="panel-title">Tambahkan aset ke portofolio</h2>
-        </div>
-      </div>
-      <div class="field-grid four">
-        <label class="field"><span>Kode aset</span><input id="asset-symbol" placeholder="cth: GOLD" /></label>
-        <label class="field"><span>Nama aset</span><input id="asset-name" placeholder="cth: Gold ETF" /></label>
-        <label class="field"><span>Unit</span><input id="asset-unit" placeholder="unit / gram / oz" /></label>
-        <label class="field"><span>Ticker harga (opsional)</span><input id="asset-yahoo" placeholder="cth: GLD / GC=F" /></label>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="add-asset-btn" type="button">Tambah Instrumen</button>
-        <button class="btn" id="cancel-instrument-btn" type="button">Batal</button>
-      </div>
-      <p class="hint">Instrumen custom tersimpan di Firestore setelah login. Ticker kosong berarti harga pasar diisi manual.</p>
-    </div>
-
-    <!-- ============ TAB CONTENT (form + table) ============ -->
+    <!-- TAB CONTENT -->
     <div id="tab-content"></div>
 
-    <!-- ============ CHARTS ============ -->
+    <!-- CHARTS -->
     <section class="dashboard-grid">
       <div class="panel chart-panel">
         <div class="panel-head stacked">
           <div>
             <p class="eyebrow">Perkembangan</p>
-            <h2 class="panel-title">Akumulasi & unrealized gain</h2>
+            <h2 class="panel-title">Akumulasi &amp; unrealized gain</h2>
           </div>
           <div class="legend">
             <span><i class="swatch swatch-invest"></i>Total Investasi</span>
@@ -158,7 +140,7 @@
       </div>
     </section>
 
-    <!-- ============ EXPORT ============ -->
+    <!-- EXPORT -->
     <section class="panel export-bar">
       <div>
         <p class="eyebrow">Arsip</p>
@@ -168,12 +150,62 @@
     </section>
 
     <footer class="site-footer">
-      <span>Meridian Ledger</span>
+      <span id="footer-brand">Meridian Ledger</span>
       <span class="muted">Data pribadi Anda, tersimpan aman di Firebase.</span>
     </footer>
   </main>
 
-  <!-- ============ MODAL ============ -->
+  <!-- ============ INSTRUMENT MODAL ============ -->
+  <div class="modal-backdrop" id="instrument-modal-backdrop" role="dialog" aria-modal="true" hidden>
+    <div class="app-modal wide">
+      <div class="modal-icon"><i class="fa-solid fa-layer-group"></i></div>
+      <div class="modal-title">Tambah Instrumen</div>
+      <div class="modal-message">Tambahkan aset baru ke portofolio. Ticker kosong berarti harga diisi manual.</div>
+      <div class="field-grid modal-grid">
+        <label class="field"><span>Kode aset</span><input id="asset-symbol" placeholder="cth: GOLD" /></label>
+        <label class="field"><span>Nama aset</span><input id="asset-name" placeholder="cth: Gold ETF" /></label>
+        <label class="field"><span>Unit</span><input id="asset-unit" placeholder="unit / gram / oz" /></label>
+        <label class="field"><span>Ticker harga (opsional)</span><input id="asset-yahoo" placeholder="cth: GLD / GC=F" /></label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="instrument-cancel" type="button">Batal</button>
+        <button class="btn btn-primary" id="instrument-save" type="button">Tambah Instrumen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS MODAL ============ -->
+  <div class="modal-backdrop" id="settings-modal-backdrop" role="dialog" aria-modal="true" hidden>
+    <div class="app-modal wide">
+      <div class="modal-icon"><i class="fa-solid fa-sliders"></i></div>
+      <div class="modal-title">Pengaturan Tampilan</div>
+      <div class="modal-message">Sesuaikan identitas family office Anda. Perubahan tersimpan ke akun.</div>
+
+      <div class="logo-editor">
+        <div class="logo-preview brand-logo" id="settings-logo-preview"><span data-monogram>M</span></div>
+        <div class="logo-editor-actions">
+          <label class="btn btn-sm" for="settings-logo-file"><i class="fa-solid fa-upload"></i> Unggah logo</label>
+          <input type="file" id="settings-logo-file" accept="image/*" hidden />
+          <button class="btn btn-sm btn-danger" id="settings-logo-reset" type="button">Hapus logo</button>
+        </div>
+      </div>
+
+      <div class="field-grid modal-grid">
+        <label class="field"><span>Judul (header)</span><input id="set-title" placeholder="Meridian" /></label>
+        <label class="field"><span>Deskripsi (header)</span><input id="set-subtitle" placeholder="Private Wealth · Ledger DCA" /></label>
+      </div>
+      <label class="field" style="margin-top:.85rem"><span>Label ringkasan</span><input id="set-eyebrow" placeholder="Ringkasan Portofolio" /></label>
+      <label class="field" style="margin-top:.85rem"><span>Judul utama</span><input id="set-pagetitle" placeholder="Akumulasi disiplin, dipantau dengan tenang." /></label>
+      <label class="field" style="margin-top:.85rem"><span>Deskripsi utama</span><textarea id="set-lede" rows="3" placeholder="Catat setiap pembelian rutin…"></textarea></label>
+
+      <div class="modal-actions">
+        <button class="btn" id="settings-cancel" type="button">Batal</button>
+        <button class="btn btn-primary" id="settings-save" type="button">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GENERIC ALERT/CONFIRM MODAL ============ -->
   <div class="modal-backdrop" id="app-modal-backdrop" role="dialog" aria-modal="true" hidden>
     <div class="app-modal">
       <div class="modal-icon" id="app-modal-icon"><i class="fa-solid fa-circle-info"></i></div>
@@ -187,7 +219,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- App (ES modules) -->
+  <!-- App -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

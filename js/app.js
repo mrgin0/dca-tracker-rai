@@ -1,29 +1,29 @@
 // ============================================================
-//  APP — entry point: wiring, auth flow, event delegation
+//  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
 import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js';
-import { initTheme, applyTheme, showAlert, showConfirm } from './utils.js';
-import { signIn, signOut, onAuth } from './auth.js';
-import { fetchAssets, createAsset, deleteAsset, fetchTransactions, createTransaction, updateTransaction, deleteTransaction } from './store.js';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL } from './utils.js';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js';
+import {
+  fetchAssets, createAsset, deleteAsset,
+  fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
+  getBranding, saveBranding,
+} from './store.js';
 import { fetchMarketPrices, savePriceInput } from './prices.js';
 import { renderAll, renderTabContent, setLoading } from './ui.js';
 import { renderCharts } from './charts.js';
 import { exportXLSX } from './export.js';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js';
 
 const $ = (id) => document.getElementById(id);
 
-// ---------- AUTH UI ----------
-function refreshAuthUI() {
-  const u = state.user;
-  const pill = $('user-pill'), loginBtn = $('show-auth-btn'), logoutBtn = $('logout-btn');
-  if (u) {
-    pill.textContent = u.email; pill.hidden = false;
-    loginBtn.hidden = true; logoutBtn.hidden = false;
-    $('auth-panel').hidden = true;
-  } else {
-    pill.hidden = true; loginBtn.hidden = false; logoutBtn.hidden = true;
-  }
+// ---------- LOGIN GATE ----------
+function setAuthedUI(authed) {
+  $('login-view').hidden = authed;
+  $('app-view').hidden = !authed;
+  $('setting-btn').hidden = !authed;
+  $('logout-btn').hidden = !authed;
 }
 
 // ---------- DATA LOAD ----------
@@ -53,7 +53,29 @@ async function loadAll() {
   renderAll();
 }
 
-// ---------- HANDLERS ----------
+async function reloadTransactions() {
+  if (!state.user) { initData(); return; }
+  initData();
+  const txs = await fetchTransactions(state.user.uid);
+  txs.forEach((row) => {
+    if (!state.data[row.asset]) state.data[row.asset] = [];
+    state.data[row.asset].push(row);
+  });
+}
+
+async function loadBranding() {
+  if (!state.user) return;
+  try {
+    const b = await getBranding(state.user.uid);
+    if (b) {
+      const merged = { ...DEFAULT_BRANDING, ...b };
+      setCachedBranding(merged);
+      applyBranding(merged);
+    }
+  } catch (e) { console.warn('branding load:', e.message); }
+}
+
+// ---------- AUTH HANDLERS ----------
 async function handleSignIn() {
   const email = $('auth-email').value.trim();
   const password = $('auth-password').value;
@@ -66,8 +88,24 @@ async function handleSignIn() {
   }
 }
 
-async function handleSignOut() {
-  await signOut();
+async function handleForgot() {
+  const email = $('auth-email').value.trim();
+  if (!email) return showAlert('Isi email dulu, lalu klik "Lupa password?" untuk kirim tautan reset.', 'Reset password');
+  try {
+    await resetPassword(email);
+    showAlert(`Tautan reset password sudah dikirim ke ${email} lewat Firebase. Cek inbox (atau folder spam).`, 'Cek email Anda');
+  } catch (e) {
+    showAlert(e.message || 'Gagal mengirim tautan reset.', 'Reset gagal');
+  }
+}
+
+async function handleSignOut() { await signOut(); }
+
+// ---------- INSTRUMENT MODAL ----------
+function openInstrumentModal() {
+  ['asset-symbol', 'asset-name', 'asset-unit', 'asset-yahoo'].forEach((id) => ($(id).value = ''));
+  openBackdrop('instrument-modal-backdrop');
+  setTimeout(() => $('asset-symbol').focus(), 60);
 }
 
 async function handleAddAsset() {
@@ -83,8 +121,7 @@ async function handleAddAsset() {
   } catch (e) {
     return showAlert(e.message || 'Gagal menyimpan instrumen.');
   }
-  ['asset-symbol', 'asset-name', 'asset-unit', 'asset-yahoo'].forEach((id) => ($(id).value = ''));
-  state.showInstrumentForm = false;
+  closeBackdrop('instrument-modal-backdrop');
   await loadAll();
   state.currentTab = symbol;
   renderAll();
@@ -104,6 +141,7 @@ async function handleRemoveAsset(symbol) {
   await loadAll();
 }
 
+// ---------- TRANSACTION HANDLERS ----------
 async function handleSaveEntry(asset) {
   if (!state.user) return showAlert('Masuk dulu agar data tersimpan.');
   const tanggal = $('f-tanggal').value;
@@ -138,16 +176,6 @@ async function handleDelEntry(asset, idx) {
   renderAll();
 }
 
-async function reloadTransactions() {
-  if (!state.user) { initData(); return; }
-  initData();
-  const txs = await fetchTransactions(state.user.uid);
-  txs.forEach((row) => {
-    if (!state.data[row.asset]) state.data[row.asset] = [];
-    state.data[row.asset].push(row);
-  });
-}
-
 function startEdit(asset, idx) {
   state.currentTab = asset;
   state.editIdx = idx;
@@ -155,6 +183,7 @@ function startEdit(asset, idx) {
   document.querySelector('#tab-content .panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ---------- PRICES ----------
 async function handleFetchPrices() {
   const hint = $('price-hint');
   try {
@@ -172,6 +201,62 @@ async function handleFetchPrices() {
   }
 }
 
+// ---------- SETTINGS MODAL ----------
+let pendingLogo = '';
+
+function renderSettingsPreview() {
+  const el = $('settings-logo-preview');
+  if (pendingLogo) {
+    el.innerHTML = `<img src="${pendingLogo}" alt="Logo" />`;
+  } else {
+    const t = ($('set-title').value || 'M').trim().charAt(0).toUpperCase() || 'M';
+    el.innerHTML = `<span data-monogram>${t}</span>`;
+  }
+}
+
+function openSettingsModal() {
+  const b = state.branding || getCachedBranding();
+  $('set-title').value = b.title;
+  $('set-subtitle').value = b.subtitle;
+  $('set-eyebrow').value = b.eyebrow;
+  $('set-pagetitle').value = b.pageTitle;
+  $('set-lede').value = b.lede;
+  pendingLogo = b.logo || '';
+  renderSettingsPreview();
+  openBackdrop('settings-modal-backdrop');
+}
+
+async function handleLogoFile(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    pendingLogo = await fileToLogoDataURL(file, 160);
+    renderSettingsPreview();
+  } catch (err) {
+    showAlert(err.message || 'Gagal memproses gambar.');
+  } finally {
+    e.target.value = '';
+  }
+}
+
+async function handleSettingsSave() {
+  const branding = {
+    title: $('set-title').value.trim() || DEFAULT_BRANDING.title,
+    subtitle: $('set-subtitle').value.trim() || DEFAULT_BRANDING.subtitle,
+    eyebrow: $('set-eyebrow').value.trim() || DEFAULT_BRANDING.eyebrow,
+    pageTitle: $('set-pagetitle').value.trim() || DEFAULT_BRANDING.pageTitle,
+    lede: $('set-lede').value.trim() || DEFAULT_BRANDING.lede,
+    logo: pendingLogo || '',
+  };
+  setCachedBranding(branding);
+  applyBranding(branding);
+  closeBackdrop('settings-modal-backdrop');
+  if (state.user) {
+    try { await saveBranding(state.user.uid, branding); }
+    catch (e) { showAlert('Tampilan diterapkan, tapi gagal menyimpan ke akun: ' + e.message); }
+  }
+}
+
 // ---------- AUTO-CALC ----------
 function autoCalc() {
   const h = parseFloat($('f-harga')?.value);
@@ -184,31 +269,45 @@ function autoCalcFromTotal() {
   if (!isNaN(h) && h > 0 && !isNaN(t)) $('f-unit').value = (t / h).toFixed(6);
 }
 
-// ---------- EVENT DELEGATION ----------
+// ---------- EVENT WIRING ----------
 function wireEvents() {
-  // Masthead (static elements)
+  // theme
   $('theme-btn').addEventListener('click', () => {
     const next = document.body.classList.contains('dark') ? 'light' : 'dark';
     applyTheme(next);
     setTimeout(renderCharts, 40);
   });
-  $('show-auth-btn').addEventListener('click', () => { $('auth-panel').hidden = !$('auth-panel').hidden; });
-  $('logout-btn').addEventListener('click', handleSignOut);
+
+  // auth / login
   $('signin-btn').addEventListener('click', handleSignIn);
   $('auth-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSignIn(); });
+  $('forgot-btn').addEventListener('click', handleForgot);
+  $('logout-btn').addEventListener('click', handleSignOut);
+
+  // settings modal
+  $('setting-btn').addEventListener('click', openSettingsModal);
+  $('settings-cancel').addEventListener('click', () => closeBackdrop('settings-modal-backdrop'));
+  $('settings-save').addEventListener('click', handleSettingsSave);
+  $('settings-logo-file').addEventListener('change', handleLogoFile);
+  $('settings-logo-reset').addEventListener('click', () => { pendingLogo = ''; renderSettingsPreview(); });
+  $('set-title').addEventListener('input', () => { if (!pendingLogo) renderSettingsPreview(); });
+
+  // instrument modal
+  $('instrument-cancel').addEventListener('click', () => closeBackdrop('instrument-modal-backdrop'));
+  $('instrument-save').addEventListener('click', handleAddAsset);
+
+  // prices + export
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
-  $('add-asset-btn').addEventListener('click', handleAddAsset);
-  $('cancel-instrument-btn').addEventListener('click', () => { state.showInstrumentForm = false; $('instrument-panel').hidden = true; });
   $('export-btn').addEventListener('click', exportXLSX);
 
-  // Delegated clicks (rendered content)
+  // delegated clicks (rendered content)
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
     const { action, symbol, idx } = el.dataset;
     switch (action) {
       case 'switch-tab': state.currentTab = symbol; state.editIdx = null; renderAll(); break;
-      case 'toggle-instrument': state.showInstrumentForm = !state.showInstrumentForm; $('instrument-panel').hidden = !state.showInstrumentForm; break;
+      case 'open-instrument': openInstrumentModal(); break;
       case 'save-entry': handleSaveEntry(symbol); break;
       case 'edit-entry': startEdit(symbol, Number(idx)); break;
       case 'del-entry': handleDelEntry(symbol, Number(idx)); break;
@@ -218,7 +317,7 @@ function wireEvents() {
     }
   });
 
-  // Delegated inputs
+  // delegated inputs
   document.addEventListener('input', (e) => {
     const t = e.target;
     if (t.id === 'f-harga' || t.id === 'f-unit') autoCalc();
@@ -230,6 +329,7 @@ function wireEvents() {
 // ---------- BOOT ----------
 function boot() {
   initTheme();
+  applyBranding(getCachedBranding()); // instant, from cache
   initData();
   wireEvents();
   renderAll();
@@ -238,8 +338,11 @@ function boot() {
     state.user = user || null;
     state.assets = [...DEFAULT_ASSETS];
     state.data = {};
-    refreshAuthUI();
-    await loadAll();
+    setAuthedUI(!!user);
+    if (user) {
+      await loadBranding();
+      await loadAll();
+    }
   });
 }
 
