@@ -34,6 +34,19 @@ export function formatDateWITA(dateStr) {
   } catch { return dateStr; }
 }
 
+/** Format ISO timestamp lengkap: detik, menit, jam, tanggal, bulan, tahun. */
+export function formatDateTimeWITA(isoStr) {
+  if (!isoStr) return null;
+  try {
+    const formatted = new Date(isoStr).toLocaleString('id-ID', {
+      timeZone: 'Asia/Makassar',
+      day: '2-digit', month: 'long', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    return `${formatted} WITA`;
+  } catch { return isoStr; }
+}
+
 export function todayISO() { return new Date().toISOString().slice(0, 10); }
 
 // ---------- THEME ----------
