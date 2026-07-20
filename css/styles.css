@@ -484,6 +484,10 @@ tr:hover td { background: var(--surface-2); }
 }
 
 /* ============ LOGIN VIEW ============ */
+body.logged-out #masthead { display: none; }
+#masthead { transition: opacity .2s ease; }
+body.logged-out #app-view { display: none; }
+
 .login-view {
   min-height: calc(100vh - 78px);
   display: flex;
