@@ -2,11 +2,11 @@
 //  UI — DOM rendering (no event wiring; app.js delegates events)
 // ============================================================
 
-import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset } from './state.js?v=5';
-import { getPrice, getSavedPrice } from './prices.js?v=5';
-import { calcAsset, calcTotals } from './calc.js?v=5';
-import { renderCharts } from './charts.js?v=5';
-import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO } from './utils.js?v=5';
+import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset } from './state.js?v=9';
+import { getPrice, getSavedPrice } from './prices.js?v=9';
+import { calcAsset, calcTotals } from './calc.js?v=9';
+import { renderCharts } from './charts.js?v=9';
+import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO } from './utils.js?v=9';
 
 const $ = (id) => document.getElementById(id);
 
