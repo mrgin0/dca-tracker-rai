@@ -383,6 +383,22 @@ input[type="date"] { min-height: 40px; }
 .asset-metric .sub { font-size: 11px; color: var(--muted-2); margin-top: .3rem; }
 
 /* ============ TABLE ============ */
+.table-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  flex-wrap: wrap; margin-bottom: .85rem;
+}
+.rows-per-page { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.rows-label { font-size: 11.5px; color: var(--muted-2); margin-right: .2rem; }
+.rows-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--muted); background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: .35rem .75rem; cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.rows-btn:hover { color: var(--text); border-color: var(--champagne); }
+.rows-btn.active { background: var(--ink); color: var(--on-ink); border-color: var(--ink); font-weight: 600; }
+.table-caption { margin-top: .75rem; text-align: right; }
 .table-wrap { overflow-x: auto; margin-top: .5rem; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
@@ -408,6 +424,7 @@ tr:hover td { background: var(--surface-2); }
 .dashboard-grid { display: grid; grid-template-columns: 1.3fr .85fr; gap: 1.5rem; margin-bottom: 1.5rem; }
 .chart-wrap { position: relative; width: 100%; height: 300px; }
 .pie-wrap { position: relative; width: 100%; height: 280px; }
+canvas { max-width: 100%; }
 .legend { display: flex; gap: 1.1rem; font-size: 12px; color: var(--muted); }
 .legend .swatch { width: 22px; height: 3px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: middle; }
 .swatch-invest { background: #3E5C82; }
@@ -417,8 +434,29 @@ tr:hover td { background: var(--surface-2); }
 .mini-row:last-child { border-bottom: none; }
 .dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; margin-right: 7px; }
 
+/* Chart range selector + zoom controls */
+.chart-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+  flex-wrap: wrap; margin: 1rem 0 .4rem;
+}
+.chart-range-row {
+  display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+}
+.chart-range-row::-webkit-scrollbar { display: none; }
+.range-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: var(--muted); background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: .4rem .85rem; cursor: pointer; white-space: nowrap;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.range-btn:hover { color: var(--text); border-color: var(--champagne); }
+.range-btn.active { background: var(--ink); color: var(--on-ink); border-color: var(--ink); font-weight: 600; }
+.chart-zoom-hint { margin-top: 0; margin-bottom: .5rem; }
+
 /* ============ EXPORT + FOOTER ============ */
 .export-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.export-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
 .site-footer {
   display: flex;
   align-items: center;
@@ -500,6 +538,8 @@ body.modal-open { overflow: hidden; }
   .statement-item { border-top: 1px solid var(--line); }
   .statement-item:first-child, .statement-item:nth-child(2) { border-top: none; }
   .field-grid.four { grid-template-columns: 1fr 1fr; }
+  .chart-wrap { height: 260px; }
+  .pie-wrap { height: 260px; }
 }
 @media (max-width: 560px) {
   .masthead-inner { flex-direction: column; align-items: flex-start; }
@@ -512,4 +552,17 @@ body.modal-open { overflow: hidden; }
   .login-card { padding: 1.75rem 1.35rem; }
   .brand-logo { width: 40px; height: 40px; }
   .brand-logo span { font-size: 20px; }
+  .chart-wrap { height: 220px; }
+  .pie-wrap { height: 240px; }
+  .panel-head.stacked { align-items: flex-start; flex-direction: column; }
+  .legend { width: 100%; flex-wrap: wrap; gap: .6rem; font-size: 11px; }
+  .chart-toolbar { flex-direction: column; align-items: stretch; }
+  .chart-toolbar .btn { width: 100%; justify-content: center; }
+  .export-bar { flex-direction: column; align-items: stretch; }
+  .export-actions { flex-direction: column; }
+  .export-actions .btn { width: 100%; justify-content: center; }
+  .table-toolbar { flex-direction: column; align-items: stretch; }
+  .table-toolbar [data-action="toggle-sort"] { width: 100%; justify-content: center; }
+  .rows-per-page { justify-content: center; }
+  .table-caption { text-align: left; }
 }
