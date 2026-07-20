@@ -2,19 +2,19 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=3';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL } from './utils.js?v=3';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=3';
+import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=5';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL } from './utils.js?v=5';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=5';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
-} from './store.js?v=3';
-import { fetchMarketPrices, savePriceInput } from './prices.js?v=3';
-import { renderAll, renderTabContent, setLoading } from './ui.js?v=3';
-import { renderCharts } from './charts.js?v=3';
-import { exportXLSX } from './export.js?v=3';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=3';
+} from './store.js?v=5';
+import { fetchMarketPrices, savePriceInput } from './prices.js?v=5';
+import { renderAll, renderTabContent, setLoading } from './ui.js?v=5';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=5';
+import { exportXLSX, exportBackupJSON } from './export.js?v=5';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=5';
 
 const $ = (id) => document.getElementById(id);
 
@@ -179,10 +179,9 @@ async function handleSaveEntry(asset) {
   if (!tanggal || isNaN(hargaBeli) || isNaN(jumlahUnit) || isNaN(totalBeli)) return showAlert('Lengkapi semua field dulu.');
 
   try {
-    if (state.editIdx !== null) {
-      const id = state.data[asset][state.editIdx].id;
-      await updateTransaction(state.user.uid, id, { tanggal, hargaBeli, jumlahUnit, totalBeli });
-      state.editIdx = null;
+    if (state.editId !== null) {
+      await updateTransaction(state.user.uid, state.editId, { tanggal, hargaBeli, jumlahUnit, totalBeli });
+      state.editId = null;
     } else {
       await createTransaction(state.user.uid, { asset, tanggal, hargaBeli, jumlahUnit, totalBeli });
     }
@@ -193,20 +192,19 @@ async function handleSaveEntry(asset) {
   renderAll();
 }
 
-async function handleDelEntry(asset, idx) {
+async function handleDelEntry(asset, id) {
   const ok = await showConfirm('Hapus transaksi ini?', 'Hapus transaksi?', 'danger');
   if (!ok) return;
-  const id = state.data[asset][idx].id;
   try { await deleteTransaction(state.user.uid, id); }
   catch (e) { return showAlert(e.message); }
-  if (state.editIdx === idx) state.editIdx = null;
+  if (state.editId === id) state.editId = null;
   await reloadTransactions();
   renderAll();
 }
 
-function startEdit(asset, idx) {
+function startEdit(asset, id) {
   state.currentTab = asset;
-  state.editIdx = idx;
+  state.editId = id;
   renderAll();
   document.querySelector('#tab-content .panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -328,21 +326,31 @@ function wireEvents() {
   // prices + export
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
+  $('backup-json-btn').addEventListener('click', exportBackupJSON);
 
   // delegated clicks (rendered content)
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
-    const { action, symbol, idx } = el.dataset;
+    const { action, symbol, id, range } = el.dataset;
     switch (action) {
-      case 'switch-tab': state.currentTab = symbol; state.editIdx = null; renderAll(); break;
+      case 'switch-tab': state.currentTab = symbol; state.editId = null; renderAll(); break;
       case 'open-instrument': openInstrumentModal(); break;
       case 'save-entry': handleSaveEntry(symbol); break;
-      case 'edit-entry': startEdit(symbol, Number(idx)); break;
-      case 'del-entry': handleDelEntry(symbol, Number(idx)); break;
-      case 'cancel-edit': state.editIdx = null; renderTabContent(); break;
+      case 'edit-entry': startEdit(symbol, id); break;
+      case 'del-entry': handleDelEntry(symbol, id); break;
+      case 'cancel-edit': state.editId = null; renderTabContent(); break;
       case 'remove-asset': handleRemoveAsset(symbol); break;
-      case 'toggle-rows': state.showAllRows[symbol] = !state.showAllRows[symbol]; renderTabContent(); break;
+      case 'toggle-sort':
+        state.tableSortDir[symbol] = (state.tableSortDir[symbol] || 'desc') === 'desc' ? 'asc' : 'desc';
+        renderTabContent();
+        break;
+      case 'set-page-size':
+        state.tableRowsPerPage[symbol] = el.dataset.size === 'ALL' ? 'ALL' : Number(el.dataset.size);
+        renderTabContent();
+        break;
+      case 'set-chart-range': setChartRange(range); break;
+      case 'reset-zoom': resetChartZoom(); break;
     }
   });
 
