@@ -2,10 +2,10 @@
 //  CHARTS — Chart.js line (accumulation) + pie (allocation)
 // ============================================================
 
-import { state, colorForAsset } from './state.js?v=3';
-import { getPrice } from './prices.js?v=3';
-import { calcAsset } from './calc.js?v=3';
-import { fmt, formatDateWITA } from './utils.js?v=3';
+import { state, colorForAsset } from './state.js?v=5';
+import { getPrice } from './prices.js?v=5';
+import { calcAsset } from './calc.js?v=5';
+import { fmt, formatDateWITA } from './utils.js?v=5';
 
 function axisColor() {
   return getComputedStyle(document.body).getPropertyValue('--muted-2').trim() || '#9AA1AB';
@@ -14,14 +14,16 @@ function gridColor() {
   return document.body.classList.contains('dark') ? 'rgba(255,255,255,0.05)' : 'rgba(20,36,61,0.05)';
 }
 
+const RANGE_DAYS = { '1W': 7, '1M': 30, '1Y': 365, '5Y': 365 * 5, '10Y': 365 * 10 };
+
 function buildLineData() {
   const dateSet = new Set();
   state.assets.forEach((a) => (state.data[a.symbol] || []).forEach((e) => dateSet.add(e.tanggal)));
-  const dates = Array.from(dateSet).sort();
-  if (!dates.length) return null;
+  const rawDates = Array.from(dateSet).sort();
+  if (!rawDates.length) return null;
 
   const labels = [], investData = [], gainData = [];
-  dates.forEach((date) => {
+  rawDates.forEach((date) => {
     let cumCost = 0, cumValue = 0, hasAllPrices = true;
     state.assets.forEach((a) => {
       const cp = getPrice(a.symbol);
@@ -37,15 +39,47 @@ function buildLineData() {
     investData.push(Number(cumCost.toFixed(2)));
     gainData.push(hasAllPrices ? Number((cumValue - cumCost).toFixed(2)) : null);
   });
-  return { labels, investData, gainData };
+  return { rawDates, labels, investData, gainData };
+}
+
+/** Slice the full series down to the selected range, keeping one anchor point before the window so the line doesn't falsely drop to zero. */
+function filterByRange(full, range) {
+  if (!full) return full;
+  if (range === 'ALL' || !RANGE_DAYS[range]) return full;
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - RANGE_DAYS[range]);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+  let startIdx = full.rawDates.findIndex((d) => d >= cutoffStr);
+  if (startIdx === -1) {
+    startIdx = full.rawDates.length - 1; // semua data lebih tua dari rentang — tampilkan titik terakhir saja
+  } else if (startIdx > 0) {
+    startIdx -= 1; // sertakan 1 titik sebelum jendela sebagai jangkar, biar garis tidak jatuh ke nol
+  }
+  return {
+    rawDates: full.rawDates.slice(startIdx),
+    labels: full.labels.slice(startIdx),
+    investData: full.investData.slice(startIdx),
+    gainData: full.gainData.slice(startIdx),
+  };
+}
+
+function updateRangeButtonsUI() {
+  document.querySelectorAll('[data-action="set-chart-range"]').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.range === state.chartRange);
+  });
 }
 
 export function renderLineChart() {
-  const d = buildLineData();
+  const full = buildLineData();
+  updateRangeButtonsUI();
+
   const emptyEl = document.getElementById('chart-empty');
   const wrapEl = document.getElementById('chart-wrapper');
-  if (!d) { emptyEl.hidden = false; wrapEl.hidden = true; return; }
+  if (!full) { emptyEl.hidden = false; wrapEl.hidden = true; return; }
 
+  const d = filterByRange(full, state.chartRange);
   const hasGain = d.gainData.some((v) => v !== null);
   emptyEl.hidden = hasGain;
   if (!hasGain) {
@@ -57,6 +91,15 @@ export function renderLineChart() {
   const ctx = document.getElementById('portfolioChart')?.getContext('2d');
   if (!ctx) return;
 
+  const zoomConfig = {
+    pan: { enabled: true, mode: 'x' },
+    zoom: {
+      wheel: { enabled: true, speed: 0.12 },
+      pinch: { enabled: true },
+      mode: 'x',
+    },
+  };
+
   if (state.charts.line) {
     const c = state.charts.line;
     c.data.labels = d.labels;
@@ -66,6 +109,7 @@ export function renderLineChart() {
     c.options.scales.y.ticks.color = axisColor();
     c.options.scales.x.grid.color = gridColor();
     c.options.scales.y.grid.color = gridColor();
+    c.resetZoom?.();
     c.update();
     return;
   }
@@ -82,7 +126,7 @@ export function renderLineChart() {
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false } },
+      plugins: { legend: { display: false }, zoom: zoomConfig },
       scales: {
         x: { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 } },
         y: { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 }, callback: (v) => '$' + Number(v).toLocaleString('en-US', { notation: 'compact' }) } },
@@ -90,6 +134,30 @@ export function renderLineChart() {
     },
   });
 }
+
+/** Ganti rentang waktu chart (1W/1M/1Y/5Y/10Y/ALL) lalu render ulang. */
+export function setChartRange(range) {
+  state.chartRange = range;
+  renderLineChart();
+}
+
+/** Reset posisi zoom/pan chart ke tampilan awal. */
+export function resetChartZoom() {
+  state.charts.line?.resetZoom?.();
+}
+
+// Chart.js responsive mode sometimes needs a manual nudge on mobile
+// orientation change / viewport resize (iOS Safari quirk).
+let _resizeTimer = null;
+function _handleResize() {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    state.charts.line?.resize();
+    state.charts.pie?.resize();
+  }, 150);
+}
+window.addEventListener('resize', _handleResize);
+window.addEventListener('orientationchange', _handleResize);
 
 export function renderPieChart() {
   const rows = state.assets
