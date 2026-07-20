@@ -34,6 +34,6 @@ export const db = initializeFirestore(app, {
 //  Tidak menyimpan histori harga ke database.
 // ============================================================
 export const PRICES = {
-  url: 'https://get-prices.GANTI-URL-WORKER-ANDA.workers.dev',
+  url: 'https://get-prices.raihan-nor-falah.workers.dev/',
   headers: {},
 };
