@@ -2,10 +2,10 @@
 //  CHARTS — Chart.js line (accumulation) + pie (allocation)
 // ============================================================
 
-import { state, colorForAsset } from './state.js?v=8';
-import { getPrice } from './prices.js?v=8';
-import { calcAsset } from './calc.js?v=8';
-import { fmt, formatDateWITA } from './utils.js?v=8';
+import { state, colorForAsset } from './state.js?v=9';
+import { getPrice } from './prices.js?v=9';
+import { calcAsset } from './calc.js?v=9';
+import { fmt, formatDateWITA } from './utils.js?v=9';
 
 function axisColor() {
   return getComputedStyle(document.body).getPropertyValue('--muted-2').trim() || '#9AA1AB';
