@@ -2,20 +2,21 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=8';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA } from './utils.js?v=8';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=8';
+import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=9';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA } from './utils.js?v=9';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=9';
+import { auth } from './firebase-config.js?v=9';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
   getLastPriceSnapshot, saveLastPriceSnapshot,
-} from './store.js?v=8';
-import { fetchMarketPrices, savePriceInput } from './prices.js?v=8';
-import { renderAll, renderTabContent, setLoading } from './ui.js?v=8';
-import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=8';
-import { exportXLSX, exportBackupJSON } from './export.js?v=8';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=8';
+} from './store.js?v=9';
+import { fetchMarketPrices, savePriceInput } from './prices.js?v=9';
+import { renderAll, renderTabContent, setLoading } from './ui.js?v=9';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=9';
+import { exportXLSX, exportBackupJSON } from './export.js?v=9';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=9';
 
 const $ = (id) => document.getElementById(id);
 
@@ -33,6 +34,15 @@ function showLoginError(msg) {
   if (!msg) { el.hidden = true; el.textContent = ''; return; }
   el.textContent = msg;
   el.hidden = false;
+}
+
+/** Fallback: sinkronkan state.user dari auth.currentUser kalau onAuth callback belum terpanggil. */
+function ensureUser() {
+  if (!state.user && auth?.currentUser) {
+    state.user = auth.currentUser;
+    console.info('[meridian] state.user disinkronkan dari auth.currentUser', state.user.uid);
+  }
+  return state.user;
 }
 
 // ---------- DATA LOAD ----------
@@ -57,8 +67,6 @@ async function loadAll() {
     });
   } catch (e) {
     console.warn('tx load:', e.message);
-    // Non-blocking: kegagalan load latar belakang TIDAK BOLEH menutup seluruh
-    // halaman dengan modal (itu bikin semua tab/tombol lain jadi ter-block klik).
     showErrorBanner(describeDataError(e));
   }
   renderAll();
@@ -86,7 +94,6 @@ async function loadBranding() {
   } catch (e) { console.warn('branding load:', e.message); }
 }
 
-/** Terapkan snapshot harga (dari Firestore) ke input & tampilkan keterangan waktunya. */
 function applyPriceSnapshot(snapshot) {
   if (!snapshot || !snapshot.prices) return;
   Object.entries(snapshot.prices).forEach(([symbol, price]) => {
@@ -102,7 +109,6 @@ function applyPriceSnapshot(snapshot) {
   }
 }
 
-/** Muat 1 snapshot harga terakhir milik user ini dari Firestore (bukan histori — cuma 1 data). */
 async function loadLastPriceSnapshot() {
   if (!state.user) return;
   try {
@@ -128,14 +134,13 @@ function describeAuthError(e) {
   return AUTH_ERROR_MESSAGES[e.code] || e.message || 'Gagal masuk. Coba lagi.';
 }
 
-/** Terjemahkan error Firestore/network — deteksi kasus umum: diblokir ad-blocker/ekstensi. */
 function describeDataError(e) {
   const msg = e?.message || String(e || '');
   if (/blocked|Failed to fetch|network|ERR_BLOCKED/i.test(msg)) {
     return 'Gagal terhubung ke database — kemungkinan diblokir ad-blocker/ekstensi privasi browser. Coba nonaktifkan ekstensi tersebut untuk situs ini (atau buka di jendela Incognito) lalu coba lagi.';
   }
   if (/permission|insufficient/i.test(msg)) {
-    return 'Akses ditolak oleh Firestore. Cek Security Rules di Firebase Console sudah di-Publish.';
+    return 'Akses ditolak oleh Firestore. Cek Security Rules di Firebase Console sudah di-Publish (rules_version = "2" + match /users/{uid}/{document=**}).';
   }
   return msg || 'Terjadi kesalahan. Coba lagi.';
 }
@@ -147,8 +152,13 @@ async function handleSignIn() {
   showLoginError('');
   if (!email || !password) return showLoginError('Isi email dan kata sandi dulu.');
   try {
-    await signIn(email, password);
+    const cred = await signIn(email, password);
     $('auth-password').value = '';
+    // Set state.user segera — tidak menunggu onAuth callback yang kadang telat.
+    if (cred?.user) {
+      state.user = cred.user;
+      console.info('[meridian] state.user diset dari signIn credential', cred.user.uid);
+    }
   } catch (e) {
     console.error('Login error:', e.code, e.message);
     showLoginError(describeAuthError(e));
@@ -177,7 +187,7 @@ function openInstrumentModal() {
 }
 
 async function handleAddAsset() {
-  if (!state.user) return showAlert('Masuk dulu untuk menambah instrumen.');
+  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
   const symbol = $('asset-symbol').value.trim().toUpperCase();
   const name = $('asset-name').value.trim();
   const unit = $('asset-unit').value.trim() || 'unit';
@@ -187,6 +197,7 @@ async function handleAddAsset() {
   try {
     await createAsset(state.user.uid, { symbol, name: name || symbol, unit, yahoo });
   } catch (e) {
+    console.error('createAsset failed:', e);
     return showAlert(describeDataError(e), 'Gagal menyimpan instrumen');
   }
   closeBackdrop('instrument-modal-backdrop');
@@ -196,6 +207,7 @@ async function handleAddAsset() {
 }
 
 async function handleRemoveAsset(symbol) {
+  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
   if (DEFAULT_ASSETS.some((a) => a.symbol === symbol)) return showAlert('Aset default tidak bisa dihapus.');
   const trxCount = (state.data[symbol] || []).length;
   if (trxCount > 0) return showAlert(`Instrumen ${symbol} masih punya ${trxCount} transaksi. Hapus transaksinya dulu.`);
@@ -211,7 +223,7 @@ async function handleRemoveAsset(symbol) {
 
 // ---------- TRANSACTION HANDLERS ----------
 async function handleSaveEntry(asset) {
-  if (!state.user) return showAlert('Masuk dulu agar data tersimpan.');
+  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
   const tanggal = $('f-tanggal').value;
   const hargaBeli = parseFloat($('f-harga').value);
   const jumlahUnit = parseFloat($('f-unit').value);
@@ -226,6 +238,7 @@ async function handleSaveEntry(asset) {
       await createTransaction(state.user.uid, { asset, tanggal, hargaBeli, jumlahUnit, totalBeli });
     }
   } catch (e) {
+    console.error('save transaction failed:', e);
     return showAlert(describeDataError(e), 'Gagal menyimpan transaksi');
   }
   await reloadTransactions();
@@ -233,6 +246,7 @@ async function handleSaveEntry(asset) {
 }
 
 async function handleDelEntry(asset, id) {
+  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
   const ok = await showConfirm('Hapus transaksi ini?', 'Hapus transaksi?', 'danger');
   if (!ok) return;
   try { await deleteTransaction(state.user.uid, id); }
@@ -257,9 +271,8 @@ async function handleFetchPrices() {
     const { filled, prices, at } = await fetchMarketPrices();
     if (filled) {
       hint.textContent = `Harga diperbarui: ${formatDateTimeWITA(at)}`;
-      if (state.user) {
+      if (ensureUser()) {
         try {
-          // setDoc tanpa merge → menimpa penuh doc lama. Selalu tepat 1 snapshot, bukan log.
           await saveLastPriceSnapshot(state.user.uid, { prices, fetchedAt: at });
         } catch (e) {
           console.warn('gagal simpan snapshot harga:', e.message);
@@ -327,9 +340,9 @@ async function handleSettingsSave() {
   setCachedBranding(branding);
   applyBranding(branding);
   closeBackdrop('settings-modal-backdrop');
-  if (state.user) {
+  if (ensureUser()) {
     try { await saveBranding(state.user.uid, branding); }
-    catch (e) { showAlert('Tampilan diterapkan, tapi gagal menyimpan ke akun: ' + e.message); }
+    catch (e) { showAlert('Tampilan diterapkan, tapi gagal menyimpan ke akun: ' + describeDataError(e)); }
   }
 }
 
@@ -347,21 +360,18 @@ function autoCalcFromTotal() {
 
 // ---------- EVENT WIRING ----------
 function wireEvents() {
-  // theme
   $('theme-btn').addEventListener('click', () => {
     const next = document.body.classList.contains('dark') ? 'light' : 'dark';
     applyTheme(next);
     setTimeout(renderCharts, 40);
   });
 
-  // auth / login
   $('signin-btn').addEventListener('click', handleSignIn);
   $('auth-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSignIn(); });
   $('auth-email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('auth-password').focus(); });
   $('forgot-btn').addEventListener('click', handleForgot);
   $('logout-btn').addEventListener('click', handleSignOut);
 
-  // settings modal
   $('setting-btn').addEventListener('click', openSettingsModal);
   $('settings-cancel').addEventListener('click', () => closeBackdrop('settings-modal-backdrop'));
   $('settings-save').addEventListener('click', handleSettingsSave);
@@ -369,22 +379,22 @@ function wireEvents() {
   $('settings-logo-reset').addEventListener('click', () => { pendingLogo = ''; renderSettingsPreview(); });
   $('set-title').addEventListener('input', () => { if (!pendingLogo) renderSettingsPreview(); });
 
-  // instrument modal
   $('instrument-cancel').addEventListener('click', () => closeBackdrop('instrument-modal-backdrop'));
   $('instrument-save').addEventListener('click', handleAddAsset);
 
-  // prices + export
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
   $('backup-json-btn').addEventListener('click', exportBackupJSON);
 
-  // delegated clicks (rendered content)
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
     const { action, symbol, id, range } = el.dataset;
     switch (action) {
-      case 'switch-tab': state.currentTab = symbol; state.editId = null; renderAll(); break;
+      case 'switch-tab':
+        console.info('[meridian] switch-tab ->', symbol);
+        state.currentTab = symbol; state.editId = null; renderAll();
+        break;
       case 'open-instrument': openInstrumentModal(); break;
       case 'save-entry': handleSaveEntry(symbol); break;
       case 'edit-entry': startEdit(symbol, id); break;
@@ -404,7 +414,6 @@ function wireEvents() {
     }
   });
 
-  // delegated inputs
   document.addEventListener('input', (e) => {
     const t = e.target;
     if (t.id === 'f-harga' || t.id === 'f-unit') autoCalc();
@@ -414,8 +423,6 @@ function wireEvents() {
 }
 
 // ---------- GLOBAL ERROR BANNER ----------
-// Menampilkan error langsung di halaman (bukan cuma Console) supaya
-// masalah apapun langsung kelihatan tanpa perlu buka DevTools.
 function showErrorBanner(message) {
   let banner = document.getElementById('global-error-banner');
   if (!banner) {
@@ -436,7 +443,6 @@ window.addEventListener('unhandledrejection', (e) => {
   const reason = e.reason;
   const msg = reason?.message || String(reason);
   console.error('Unhandled promise rejection:', reason);
-  // Jaringan diblokir ekstensi/ad-blocker biasanya muncul di sini.
   if (/blocked|network|fetch|Failed to fetch/i.test(msg)) {
     showErrorBanner('Koneksi ke server diblokir. Coba nonaktifkan ad-blocker/ekstensi privasi untuk situs ini, lalu refresh.');
   } else {
@@ -445,27 +451,40 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 // ---------- BOOT ----------
+async function handleUserChange(user) {
+  state.user = user || null;
+  state.assets = [...DEFAULT_ASSETS];
+  state.data = {};
+  setAuthedUI(!!user);
+  if (user) {
+    showLoginError('');
+    console.info('[meridian] onAuth -> user:', user.uid);
+    await loadBranding();
+    await loadAll();
+    await loadLastPriceSnapshot();
+  } else {
+    console.info('[meridian] onAuth -> signed out');
+    initData();
+    renderAll();
+  }
+}
+
 function boot() {
   try {
     initTheme();
-    applyBranding(getCachedBranding()); // instant, from cache
+    applyBranding(getCachedBranding());
     initData();
     wireEvents();
     renderAll();
     setAuthedUI(false);
 
-    onAuth(async (user) => {
-      state.user = user || null;
-      state.assets = [...DEFAULT_ASSETS];
-      state.data = {};
-      setAuthedUI(!!user);
-      if (user) {
-        showLoginError('');
-        await loadBranding();
-        await loadAll();
-        await loadLastPriceSnapshot();
-      }
-    });
+    // Kalau session sudah restored oleh Firebase, langsung pakai user-nya.
+    if (auth?.currentUser) {
+      console.info('[meridian] auth.currentUser tersedia saat boot');
+      handleUserChange(auth.currentUser);
+    }
+
+    onAuth(handleUserChange);
   } catch (e) {
     console.error('Boot gagal:', e);
     showErrorBanner(`Aplikasi gagal dimuat: ${e.message}. Coba hard refresh (Ctrl+Shift+R) atau cek ekstensi browser.`);
