@@ -66,7 +66,11 @@ export function showModal({ title = 'Info', message = '', type = 'info', confirm
       : '<i class="fa-solid fa-circle-info"></i>';
     actions.innerHTML = '';
 
-    const close = (val) => { backdrop.hidden = true; resolve(val); };
+    const close = (val) => {
+      backdrop.hidden = true;
+      if (!document.querySelector('.modal-backdrop:not([hidden])')) document.body.classList.remove('modal-open');
+      resolve(val);
+    };
 
     if (confirm) {
       const cancel = document.createElement('button');
@@ -82,6 +86,7 @@ export function showModal({ title = 'Info', message = '', type = 'info', confirm
     }
 
     backdrop.hidden = false;
+    document.body.classList.add('modal-open');
     const esc = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', esc); close(false); } };
     document.addEventListener('keydown', esc, { once: true });
   });
@@ -89,4 +94,51 @@ export function showModal({ title = 'Info', message = '', type = 'info', confirm
 export function showAlert(message, title = 'Info') { return showModal({ title, message, type: 'info' }); }
 export function showConfirm(message, title = 'Konfirmasi', type = 'danger') {
   return showModal({ title, message, type, confirm: true, okText: 'Ya, lanjut', cancelText: 'Batal' });
+}
+
+// ---------- CUSTOM MODAL BACKDROP HELPERS ----------
+export function closeBackdrop(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.hidden = true;
+  if (el._onClick) el.removeEventListener('click', el._onClick);
+  if (el._onEsc) document.removeEventListener('keydown', el._onEsc);
+  if (!document.querySelector('.modal-backdrop:not([hidden])')) {
+    document.body.classList.remove('modal-open');
+  }
+}
+
+export function openBackdrop(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.hidden = false;
+  document.body.classList.add('modal-open');
+  const onClick = (e) => { if (e.target === el) closeBackdrop(id); };
+  const onEsc = (e) => { if (e.key === 'Escape') closeBackdrop(id); };
+  el._onClick = onClick; el._onEsc = onEsc;
+  el.addEventListener('click', onClick);
+  document.addEventListener('keydown', onEsc);
+}
+
+// ---------- IMAGE → resized PNG data URL (for logo upload) ----------
+export function fileToLogoDataURL(file, max = 160) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) return reject(new Error('Bukan file gambar.'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Gagal membaca file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Gambar tidak valid.'));
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/png'));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
