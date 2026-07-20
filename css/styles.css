@@ -63,6 +63,7 @@ body {
   background: var(--paper);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
   transition: background .25s ease, color .25s ease;
@@ -297,6 +298,7 @@ body.logged-in #login-view { display: none; }
   margin-bottom: 1.5rem;
   overflow-x: auto;
   scrollbar-width: none;
+  min-width: 0;
 }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
@@ -385,9 +387,9 @@ input[type="date"] { min-height: 40px; }
 /* ============ TABLE ============ */
 .table-toolbar {
   display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-  flex-wrap: wrap; margin-bottom: .85rem;
+  flex-wrap: wrap; margin-bottom: .85rem; min-width: 0;
 }
-.rows-per-page { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.rows-per-page { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; min-width: 0; }
 .rows-label { font-size: 11.5px; color: var(--muted-2); margin-right: .2rem; }
 .rows-btn {
   font-family: var(--sans); font-size: 12px; font-weight: 500;
@@ -422,9 +424,10 @@ tr:hover td { background: var(--surface-2); }
 
 /* ============ DASHBOARD / CHARTS ============ */
 .dashboard-grid { display: grid; grid-template-columns: 1.3fr .85fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-.chart-wrap { position: relative; width: 100%; height: 300px; }
-.pie-wrap { position: relative; width: 100%; height: 280px; }
-canvas { max-width: 100%; }
+.dashboard-grid > * { min-width: 0; } /* grid items default to min-width:auto, which forces overflow */
+.chart-wrap { position: relative; width: 100%; height: 300px; overflow: hidden; }
+.pie-wrap { position: relative; width: 100%; height: 280px; overflow: hidden; }
+canvas { max-width: 100%; display: block; }
 .legend { display: flex; gap: 1.1rem; font-size: 12px; color: var(--muted); }
 .legend .swatch { width: 22px; height: 3px; border-radius: 2px; display: inline-block; margin-right: 6px; vertical-align: middle; }
 .swatch-invest { background: #3E5C82; }
@@ -437,10 +440,11 @@ canvas { max-width: 100%; }
 /* Chart range selector + zoom controls */
 .chart-toolbar {
   display: flex; align-items: center; justify-content: space-between; gap: .6rem;
-  flex-wrap: wrap; margin: 1rem 0 .4rem;
+  flex-wrap: wrap; margin: 1rem 0 .4rem; min-width: 0;
 }
 .chart-range-row {
   display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+  min-width: 0;
 }
 .chart-range-row::-webkit-scrollbar { display: none; }
 .range-btn {
@@ -558,11 +562,32 @@ body.modal-open { overflow: hidden; }
   .legend { width: 100%; flex-wrap: wrap; gap: .6rem; font-size: 11px; }
   .chart-toolbar { flex-direction: column; align-items: stretch; }
   .chart-toolbar .btn { width: 100%; justify-content: center; }
+  .chart-range-row { width: 100%; }
   .export-bar { flex-direction: column; align-items: stretch; }
   .export-actions { flex-direction: column; }
   .export-actions .btn { width: 100%; justify-content: center; }
   .table-toolbar { flex-direction: column; align-items: stretch; }
   .table-toolbar [data-action="toggle-sort"] { width: 100%; justify-content: center; }
-  .rows-per-page { justify-content: center; }
+  .rows-per-page { justify-content: center; width: 100%; }
   .table-caption { text-align: left; }
+}
+
+/* ============ GLOBAL ERROR BANNER ============ */
+.error-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100000;
+  background: #7A2620; color: #FCEAE8;
+  padding: .8rem 1.1rem; font-size: 13.5px; font-family: var(--sans);
+  display: flex; align-items: center; gap: .6rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+.error-banner i { flex: none; }
+.error-banner span { flex: 1; line-height: 1.4; }
+.error-banner button {
+  background: rgba(255,255,255,.12); border: none; color: #FCEAE8;
+  width: 26px; height: 26px; border-radius: 999px; cursor: pointer;
+  font-size: 18px; line-height: 1; flex: none;
+}
+.error-banner button:hover { background: rgba(255,255,255,.22); }
+@media (max-width: 560px) {
+  .error-banner { font-size: 12.5px; padding: .7rem .85rem; }
 }
