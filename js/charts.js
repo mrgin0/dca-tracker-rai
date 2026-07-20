@@ -2,16 +2,29 @@
 //  CHARTS — Chart.js line (accumulation) + pie (allocation)
 // ============================================================
 
-import { state, colorForAsset } from './state.js?v=5';
-import { getPrice } from './prices.js?v=5';
-import { calcAsset } from './calc.js?v=5';
-import { fmt, formatDateWITA } from './utils.js?v=5';
+import { state, colorForAsset } from './state.js?v=8';
+import { getPrice } from './prices.js?v=8';
+import { calcAsset } from './calc.js?v=8';
+import { fmt, formatDateWITA } from './utils.js?v=8';
 
 function axisColor() {
   return getComputedStyle(document.body).getPropertyValue('--muted-2').trim() || '#9AA1AB';
 }
 function gridColor() {
   return document.body.classList.contains('dark') ? 'rgba(255,255,255,0.05)' : 'rgba(20,36,61,0.05)';
+}
+
+/**
+ * Chart.js measures its container's size at creation time. If the wrapper
+ * was still mid-transition from hidden -> visible in the same tick (common
+ * right after tab-switch or first render on mobile), that measurement can
+ * be 0x0 and the chart never recovers its size until something else nudges
+ * it. A resize one/two frames later fixes this reliably.
+ */
+function nudgeResize(chart) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => chart?.resize());
+  });
 }
 
 const RANGE_DAYS = { '1W': 7, '1M': 30, '1Y': 365, '5Y': 365 * 5, '10Y': 365 * 10 };
@@ -133,6 +146,7 @@ export function renderLineChart() {
       },
     },
   });
+  nudgeResize(state.charts.line);
 }
 
 /** Ganti rentang waktu chart (1W/1M/1Y/5Y/10Y/ALL) lalu render ulang. */
@@ -209,6 +223,7 @@ export function renderPieChart() {
       },
     },
   });
+  nudgeResize(state.charts.pie);
 }
 
 export function renderCharts() { renderLineChart(); renderPieChart(); }
