@@ -14,11 +14,13 @@ const CUSTOM_COLORS = ['#7C3AED', '#B4436A', '#0E7C86', '#5B4B8A', '#8A5A2B', '#
 export const state = {
   assets: [...DEFAULT_ASSETS],
   currentTab: restoreActiveAsset(),
-  editIdx: null,
+  editId: null,
   data: {},
   user: null,
   branding: null,
-  showAllRows: {},
+  tableRowsPerPage: {}, // symbol -> 10 | 50 | 100 | 'ALL' (default 10)
+  tableSortDir: {},     // symbol -> 'asc' | 'desc' (default 'desc' = terbaru dulu)
+  chartRange: 'ALL',
   charts: { line: null, pie: null },
 };
 
