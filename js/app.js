@@ -24,6 +24,8 @@ function setAuthedUI(authed) {
   $('app-view').hidden = !authed;
   $('setting-btn').hidden = !authed;
   $('logout-btn').hidden = !authed;
+  document.body.classList.toggle('logged-out', !authed);
+  document.body.classList.toggle('logged-in', !!authed);
 }
 
 // ---------- DATA LOAD ----------
@@ -84,7 +86,17 @@ async function handleSignIn() {
     await signIn(email, password);
     $('auth-password').value = '';
   } catch (e) {
-    showAlert(e.message || 'Gagal masuk.', 'Login gagal');
+    const msg = e.code || e.message || 'Gagal masuk.';
+    const details = {
+      'auth/user-not-found': 'Email ini belum terdaftar di Firebase. Buat user di Firebase Console → Authentication → Users → Add user.',
+      'auth/wrong-password': 'Password salah.',
+      'auth/invalid-email': 'Format email tidak valid.',
+      'auth/invalid-credential': 'Email atau password salah. Pastikan cocok dengan yang di Firebase.',
+      'auth/user-disabled': 'Akun ini telah dinonaktifkan di Firebase.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan login gagal. Coba lagi dalam beberapa menit.',
+    };
+    const hint = details[e.code] || msg;
+    showAlert(hint, 'Login gagal');
   }
 }
 
