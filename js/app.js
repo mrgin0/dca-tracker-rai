@@ -2,19 +2,20 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=5';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL } from './utils.js?v=5';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=5';
+import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=6';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA } from './utils.js?v=6';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=6';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
-} from './store.js?v=5';
-import { fetchMarketPrices, savePriceInput } from './prices.js?v=5';
-import { renderAll, renderTabContent, setLoading } from './ui.js?v=5';
-import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=5';
-import { exportXLSX, exportBackupJSON } from './export.js?v=5';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=5';
+  getLastPriceSnapshot, saveLastPriceSnapshot,
+} from './store.js?v=6';
+import { fetchMarketPrices, savePriceInput } from './prices.js?v=6';
+import { renderAll, renderTabContent, setLoading } from './ui.js?v=6';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=6';
+import { exportXLSX, exportBackupJSON } from './export.js?v=6';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=6';
 
 const $ = (id) => document.getElementById(id);
 
@@ -81,6 +82,31 @@ async function loadBranding() {
       applyBranding(merged);
     }
   } catch (e) { console.warn('branding load:', e.message); }
+}
+
+/** Terapkan snapshot harga (dari Firestore) ke input & tampilkan keterangan waktunya. */
+function applyPriceSnapshot(snapshot) {
+  if (!snapshot || !snapshot.prices) return;
+  Object.entries(snapshot.prices).forEach(([symbol, price]) => {
+    const el = document.getElementById('price-' + symbol.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    if (el && (price !== null && price !== undefined)) {
+      el.value = price;
+      savePriceInput(symbol, String(price));
+    }
+  });
+  const hint = $('price-hint');
+  if (hint && snapshot.fetchedAt) {
+    hint.textContent = `Harga diperbarui: ${formatDateTimeWITA(snapshot.fetchedAt)}`;
+  }
+}
+
+/** Muat 1 snapshot harga terakhir milik user ini dari Firestore (bukan histori — cuma 1 data). */
+async function loadLastPriceSnapshot() {
+  if (!state.user) return;
+  try {
+    const snapshot = await getLastPriceSnapshot(state.user.uid);
+    if (snapshot) applyPriceSnapshot(snapshot);
+  } catch (e) { console.warn('price snapshot load:', e.message); }
 }
 
 // ---------- AUTH ERROR MESSAGES ----------
@@ -214,10 +240,20 @@ async function handleFetchPrices() {
   const hint = $('price-hint');
   try {
     hint.textContent = 'Mengambil harga realtime…';
-    const { filled } = await fetchMarketPrices();
-    hint.textContent = filled
-      ? 'Harga realtime dimuat ke input (tidak disimpan sebagai histori).'
-      : 'Tidak ada harga valid dari ticker yang dipakai.';
+    const { filled, prices, at } = await fetchMarketPrices();
+    if (filled) {
+      hint.textContent = `Harga diperbarui: ${formatDateTimeWITA(at)}`;
+      if (state.user) {
+        try {
+          // setDoc tanpa merge → menimpa penuh doc lama. Selalu tepat 1 snapshot, bukan log.
+          await saveLastPriceSnapshot(state.user.uid, { prices, fetchedAt: at });
+        } catch (e) {
+          console.warn('gagal simpan snapshot harga:', e.message);
+        }
+      }
+    } else {
+      hint.textContent = 'Tidak ada harga valid dari ticker yang dipakai.';
+    }
     renderTabContent();
     renderCharts();
   } catch (e) {
@@ -381,6 +417,7 @@ function boot() {
       showLoginError('');
       await loadBranding();
       await loadAll();
+      await loadLastPriceSnapshot();
     }
   });
 }
