@@ -2,11 +2,11 @@
 //  UI — DOM rendering (no event wiring; app.js delegates events)
 // ============================================================
 
-import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset } from './state.js?v=3';
-import { getPrice, getSavedPrice } from './prices.js?v=3';
-import { calcAsset, calcTotals } from './calc.js?v=3';
-import { renderCharts } from './charts.js?v=3';
-import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO } from './utils.js?v=3';
+import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset } from './state.js?v=5';
+import { getPrice, getSavedPrice } from './prices.js?v=5';
+import { calcAsset, calcTotals } from './calc.js?v=5';
+import { renderCharts } from './charts.js?v=5';
+import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO } from './utils.js?v=5';
 
 const $ = (id) => document.getElementById(id);
 
@@ -62,8 +62,8 @@ export function renderTabContent() {
   const entries = state.data[a.symbol] || [];
   const calc = calcAsset(a.symbol);
   const cp = getPrice(a.symbol);
-  const isEdit = state.editIdx !== null;
-  const ed = isEdit ? entries[state.editIdx] : null;
+  const ed = state.editId ? entries.find((e) => e.id === state.editId) || null : null;
+  const isEdit = !!ed;
 
   let summaryHtml = '';
   if (entries.length > 0) {
@@ -82,9 +82,17 @@ export function renderTabContent() {
   if (entries.length === 0) {
     tableHtml = `<div class="empty"><i class="fa-regular fa-folder-open"></i>${state.user ? 'Belum ada transaksi. Catat pembelian DCA pertama Anda.' : 'Masuk dulu agar transaksi tersimpan.'}</div>`;
   } else {
-    const expanded = !!state.showAllRows[a.symbol];
-    const visible = expanded ? entries : entries.slice(0, 5);
-    const rows = visible.map((e, i) => {
+    const sortDir = state.tableSortDir[a.symbol] || 'desc'; // default: terbaru dulu
+    const pageSize = state.tableRowsPerPage[a.symbol] ?? 10; // default 10 baris
+
+    const sortedEntries = [...entries].sort((x, y) => {
+      if (x.tanggal < y.tanggal) return sortDir === 'asc' ? -1 : 1;
+      if (x.tanggal > y.tanggal) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    const visible = pageSize === 'ALL' ? sortedEntries : sortedEntries.slice(0, pageSize);
+
+    const rows = visible.map((e) => {
       const cv = cp ? e.jumlahUnit * cp : null;
       const ug = cv !== null ? cv - e.totalBeli : null;
       const up = ug !== null && e.totalBeli > 0 ? (ug / e.totalBeli) * 100 : null;
@@ -97,21 +105,42 @@ export function renderTabContent() {
         <td class="${gc}">${ug !== null ? fmt(ug) : '—'}</td>
         <td class="${gc}" style="font-size:12px">${up !== null ? fmtPct(up) : '—'}</td>
         <td>
-          <button class="btn btn-sm" data-action="edit-entry" data-symbol="${a.symbol}" data-idx="${i}" title="Edit"><i class="fa fa-pen"></i></button>
-          <button class="btn btn-sm btn-danger" data-action="del-entry" data-symbol="${a.symbol}" data-idx="${i}" title="Hapus"><i class="fa fa-trash"></i></button>
+          <button class="btn btn-sm" data-action="edit-entry" data-symbol="${a.symbol}" data-id="${e.id}" title="Edit"><i class="fa fa-pen"></i></button>
+          <button class="btn btn-sm btn-danger" data-action="del-entry" data-symbol="${a.symbol}" data-id="${e.id}" title="Hapus"><i class="fa fa-trash"></i></button>
         </td>
       </tr>`;
     }).join('');
-    const toggle = entries.length > 5
-      ? `<div class="btn-row" style="justify-content:center;margin-top:1rem"><button class="btn" data-action="toggle-rows" data-symbol="${a.symbol}">${expanded ? 'Tampilkan 5 baris' : 'Tampilkan semua'} (${entries.length})</button></div>`
-      : '';
+
+    const pageSizes = [10, 50, 100, 'ALL'];
+    const rowsPerPageHtml = pageSizes.map((sz) => `
+      <button class="rows-btn ${pageSize === sz ? 'active' : ''}" data-action="set-page-size" data-symbol="${a.symbol}" data-size="${sz}">${sz === 'ALL' ? 'Semua' : sz}</button>
+    `).join('');
+
+    const tableToolbar = `
+      <div class="table-toolbar">
+        <button class="btn btn-sm btn-quiet" data-action="toggle-sort" data-symbol="${a.symbol}">
+          <i class="fa-solid ${sortDir === 'desc' ? 'fa-arrow-down-wide-short' : 'fa-arrow-up-wide-short'}"></i>
+          ${sortDir === 'desc' ? 'Terbaru dulu' : 'Terlama dulu'}
+        </button>
+        <div class="rows-per-page" role="group" aria-label="Jumlah baris">
+          <span class="rows-label">Tampilkan:</span>
+          ${rowsPerPageHtml}
+        </div>
+      </div>`;
+
+    const shown = visible.length;
+    const total = entries.length;
+    const caption = `<p class="hint table-caption">Menampilkan ${shown} dari ${total} transaksi.</p>`;
+
     tableHtml = `
+      ${tableToolbar}
       <div class="table-wrap">
         <table>
           <thead><tr><th>Tanggal</th><th>Harga Beli</th><th>Jumlah</th><th>Total Beli</th><th>Unrealized</th><th>%</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-      </div>${toggle}`;
+      </div>
+      ${caption}`;
   }
 
   $('tab-content').innerHTML = `
