@@ -2,20 +2,20 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=6';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA } from './utils.js?v=6';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=6';
+import { state, initData, DEFAULT_ASSETS, assetOf } from './state.js?v=8';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA } from './utils.js?v=8';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=8';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
   getLastPriceSnapshot, saveLastPriceSnapshot,
-} from './store.js?v=6';
-import { fetchMarketPrices, savePriceInput } from './prices.js?v=6';
-import { renderAll, renderTabContent, setLoading } from './ui.js?v=6';
-import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=6';
-import { exportXLSX, exportBackupJSON } from './export.js?v=6';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=6';
+} from './store.js?v=8';
+import { fetchMarketPrices, savePriceInput } from './prices.js?v=8';
+import { renderAll, renderTabContent, setLoading } from './ui.js?v=8';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=8';
+import { exportXLSX, exportBackupJSON } from './export.js?v=8';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=8';
 
 const $ = (id) => document.getElementById(id);
 
@@ -46,7 +46,7 @@ async function loadAll() {
     custom.forEach((c) => { if (!state.assets.some((a) => a.symbol === c.symbol)) state.assets.push(c); });
   } catch (e) {
     console.warn('assets load:', e.message);
-    $('price-hint').textContent = 'Gagal memuat instrumen. Cek konfigurasi Firebase / Firestore rules.';
+    $('price-hint').textContent = describeDataError(e);
   }
   initData();
   try {
@@ -57,7 +57,9 @@ async function loadAll() {
     });
   } catch (e) {
     console.warn('tx load:', e.message);
-    await showAlert('Gagal memuat transaksi: ' + e.message);
+    // Non-blocking: kegagalan load latar belakang TIDAK BOLEH menutup seluruh
+    // halaman dengan modal (itu bikin semua tab/tombol lain jadi ter-block klik).
+    showErrorBanner(describeDataError(e));
   }
   renderAll();
 }
@@ -126,6 +128,18 @@ function describeAuthError(e) {
   return AUTH_ERROR_MESSAGES[e.code] || e.message || 'Gagal masuk. Coba lagi.';
 }
 
+/** Terjemahkan error Firestore/network — deteksi kasus umum: diblokir ad-blocker/ekstensi. */
+function describeDataError(e) {
+  const msg = e?.message || String(e || '');
+  if (/blocked|Failed to fetch|network|ERR_BLOCKED/i.test(msg)) {
+    return 'Gagal terhubung ke database — kemungkinan diblokir ad-blocker/ekstensi privasi browser. Coba nonaktifkan ekstensi tersebut untuk situs ini (atau buka di jendela Incognito) lalu coba lagi.';
+  }
+  if (/permission|insufficient/i.test(msg)) {
+    return 'Akses ditolak oleh Firestore. Cek Security Rules di Firebase Console sudah di-Publish.';
+  }
+  return msg || 'Terjadi kesalahan. Coba lagi.';
+}
+
 // ---------- AUTH HANDLERS ----------
 async function handleSignIn() {
   const email = $('auth-email').value.trim();
@@ -173,7 +187,7 @@ async function handleAddAsset() {
   try {
     await createAsset(state.user.uid, { symbol, name: name || symbol, unit, yahoo });
   } catch (e) {
-    return showAlert(e.message || 'Gagal menyimpan instrumen.');
+    return showAlert(describeDataError(e), 'Gagal menyimpan instrumen');
   }
   closeBackdrop('instrument-modal-backdrop');
   await loadAll();
@@ -190,7 +204,7 @@ async function handleRemoveAsset(symbol) {
   const a = assetOf(symbol);
   if (a.id) {
     try { await deleteAsset(state.user.uid, a.id); }
-    catch (e) { return showAlert(e.message); }
+    catch (e) { return showAlert(describeDataError(e), 'Gagal menghapus instrumen'); }
   }
   await loadAll();
 }
@@ -212,7 +226,7 @@ async function handleSaveEntry(asset) {
       await createTransaction(state.user.uid, { asset, tanggal, hargaBeli, jumlahUnit, totalBeli });
     }
   } catch (e) {
-    return showAlert(e.message);
+    return showAlert(describeDataError(e), 'Gagal menyimpan transaksi');
   }
   await reloadTransactions();
   renderAll();
@@ -222,7 +236,7 @@ async function handleDelEntry(asset, id) {
   const ok = await showConfirm('Hapus transaksi ini?', 'Hapus transaksi?', 'danger');
   if (!ok) return;
   try { await deleteTransaction(state.user.uid, id); }
-  catch (e) { return showAlert(e.message); }
+  catch (e) { return showAlert(describeDataError(e), 'Gagal menghapus transaksi'); }
   if (state.editId === id) state.editId = null;
   await reloadTransactions();
   renderAll();
@@ -399,27 +413,63 @@ function wireEvents() {
   });
 }
 
+// ---------- GLOBAL ERROR BANNER ----------
+// Menampilkan error langsung di halaman (bukan cuma Console) supaya
+// masalah apapun langsung kelihatan tanpa perlu buka DevTools.
+function showErrorBanner(message) {
+  let banner = document.getElementById('global-error-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'global-error-banner';
+    banner.className = 'error-banner';
+    document.body.prepend(banner);
+  }
+  banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>${message}</span> <button type="button" aria-label="Tutup">&times;</button>`;
+  banner.querySelector('button').addEventListener('click', () => banner.remove());
+}
+
+window.addEventListener('error', (e) => {
+  console.error('Uncaught error:', e.error || e.message);
+  showErrorBanner(`Terjadi error: ${e.message || 'lihat Console (F12) untuk detail.'}`);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const reason = e.reason;
+  const msg = reason?.message || String(reason);
+  console.error('Unhandled promise rejection:', reason);
+  // Jaringan diblokir ekstensi/ad-blocker biasanya muncul di sini.
+  if (/blocked|network|fetch|Failed to fetch/i.test(msg)) {
+    showErrorBanner('Koneksi ke server diblokir. Coba nonaktifkan ad-blocker/ekstensi privasi untuk situs ini, lalu refresh.');
+  } else {
+    showErrorBanner(`Terjadi error: ${msg}`);
+  }
+});
+
 // ---------- BOOT ----------
 function boot() {
-  initTheme();
-  applyBranding(getCachedBranding()); // instant, from cache
-  initData();
-  wireEvents();
-  renderAll();
-  setAuthedUI(false);
+  try {
+    initTheme();
+    applyBranding(getCachedBranding()); // instant, from cache
+    initData();
+    wireEvents();
+    renderAll();
+    setAuthedUI(false);
 
-  onAuth(async (user) => {
-    state.user = user || null;
-    state.assets = [...DEFAULT_ASSETS];
-    state.data = {};
-    setAuthedUI(!!user);
-    if (user) {
-      showLoginError('');
-      await loadBranding();
-      await loadAll();
-      await loadLastPriceSnapshot();
-    }
-  });
+    onAuth(async (user) => {
+      state.user = user || null;
+      state.assets = [...DEFAULT_ASSETS];
+      state.data = {};
+      setAuthedUI(!!user);
+      if (user) {
+        showLoginError('');
+        await loadBranding();
+        await loadAll();
+        await loadLastPriceSnapshot();
+      }
+    });
+  } catch (e) {
+    console.error('Boot gagal:', e);
+    showErrorBanner(`Aplikasi gagal dimuat: ${e.message}. Coba hard refresh (Ctrl+Shift+R) atau cek ekstensi browser.`);
+  }
 }
 
 boot();
