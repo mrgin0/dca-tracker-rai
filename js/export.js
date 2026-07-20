@@ -2,10 +2,10 @@
 //  EXPORT — transactions + allocation to .xlsx
 // ============================================================
 
-import { state } from './state.js?v=5';
-import { getPrice } from './prices.js?v=5';
-import { calcAsset } from './calc.js?v=5';
-import { showAlert, todayISO } from './utils.js?v=5';
+import { state } from './state.js?v=9';
+import { getPrice } from './prices.js?v=9';
+import { calcAsset } from './calc.js?v=9';
+import { showAlert, todayISO } from './utils.js?v=9';
 
 export function exportXLSX() {
   const rows = [];
