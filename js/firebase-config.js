@@ -21,15 +21,12 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // ============================================================
-//  HARGA PASAR (dipertahankan seperti setup lama)
-//  Endpoint proxy harga realtime. Cukup dipakai sebagai
-//  proxy harga — TIDAK menyimpan histori ke database.
-//  Ganti kalau punya endpoint sendiri (mis. Cloud Function).
+//  HARGA PASAR — Cloudflare Worker gratis milik Anda sendiri
+//  Ganti 'GANTI-URL-WORKER-ANDA' di bawah dengan URL Worker
+//  setelah deploy. Panduan lengkap: SETUP-HARGA-GRATIS.md
+//  Tidak menyimpan histori harga ke database.
 // ============================================================
 export const PRICES = {
-  url: 'https://skdsddfefkipvhwwhgpr.supabase.co/functions/v1/get-prices',
-  headers: {
-    apikey: 'sb_publishable_YjfwjcL661wy805LRMlGOQ_EAxoWLQ2',
-    Authorization: 'Bearer sb_publishable_YjfwjcL661wy805LRMlGOQ_EAxoWLQ2',
-  },
+  url: 'https://get-prices.GANTI-URL-WORKER-ANDA.workers.dev',
+  headers: {},
 };
