@@ -5,7 +5,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDFyunVx6vAiFWKsvNU1izsoUdvz5tXCW0',
@@ -18,7 +18,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Firestore default-nya pakai "WebChannel" yang polanya (VER=8&...&zx=...) sering
+// kena tembak ad-blocker/ekstensi privasi (ERR_BLOCKED_BY_CLIENT). Setting di bawah
+// membuat SDK otomatis fallback ke long-polling biasa kalau WebChannel diblokir.
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+  useFetchStreams: false,
+});
 
 // ============================================================
 //  HARGA PASAR — Cloudflare Worker gratis milik Anda sendiri
@@ -27,6 +34,6 @@ export const db = getFirestore(app);
 //  Tidak menyimpan histori harga ke database.
 // ============================================================
 export const PRICES = {
-  url: 'https://get-prices.raihan-nor-falah.workers.dev/',
+  url: 'https://get-prices.GANTI-URL-WORKER-ANDA.workers.dev',
   headers: {},
 };
