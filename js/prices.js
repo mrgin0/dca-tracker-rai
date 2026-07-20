@@ -4,9 +4,9 @@
 //  for this browser session). No price history is stored.
 // ============================================================
 
-import { PRICES } from './firebase-config.js?v=3';
-import { state } from './state.js?v=3';
-import { safeId } from './utils.js?v=3';
+import { PRICES } from './firebase-config.js?v=6';
+import { state } from './state.js?v=6';
+import { safeId } from './utils.js?v=6';
 
 function priceKey(symbol) {
   const uid = state.user?.uid || 'guest';
@@ -56,14 +56,17 @@ export async function fetchMarketPrices() {
   if (!json.success) throw new Error(json.error || 'Gagal ambil harga pasar');
 
   let filled = 0;
+  const appliedPrices = {};
   Object.entries(json.prices || {}).forEach(([symbol, price]) => {
     const el = document.getElementById('price-' + safeId(symbol));
     if (el && price !== null && price !== undefined) {
-      el.value = Number(price).toFixed(symbol === 'BTC' ? 2 : 4);
-      savePriceInput(symbol, el.value);
+      const val = Number(price).toFixed(symbol === 'BTC' ? 2 : 4);
+      el.value = val;
+      savePriceInput(symbol, val);
+      appliedPrices[symbol] = Number(val);
       filled++;
     }
   });
 
-  return { filled, at: json.updated_at || json.fetched_at || new Date().toISOString() };
+  return { filled, prices: appliedPrices, at: json.updated_at || json.fetched_at || new Date().toISOString() };
 }
