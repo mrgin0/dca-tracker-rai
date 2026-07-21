@@ -5,7 +5,8 @@
 import { state, colorForAsset, allSymbols, entriesOf } from './state.js?v=10';
 import { getPrice } from './prices.js?v=10';
 import { calcAsset, num } from './calc.js?v=10';
-import { fmt, formatDateWITA } from './utils.js?v=10';
+import { fmt, fmtCompact, formatDateWITA } from './utils.js?v=10';
+import { t } from './i18n.js?v=10';
 
 function axisColor() {
   return getComputedStyle(document.body).getPropertyValue('--muted-2').trim() || '#9AA1AB';
@@ -117,7 +118,7 @@ export function renderLineChart() {
   if (!emptyEl || !wrapEl) return;
 
   if (!full) {
-    emptyEl.innerHTML = '<i class="fa-regular fa-chart-bar"></i>Tambahkan transaksi &amp; isi harga pasar untuk melihat grafik.';
+    emptyEl.innerHTML = `<i class="fa-regular fa-chart-bar"></i>${t('chart.empty')}`;
     emptyEl.hidden = false;
     wrapEl.hidden = true;
     setLineNotice('');
@@ -129,7 +130,7 @@ export function renderLineChart() {
   emptyEl.hidden = true;
   wrapEl.hidden = false;
   setLineNotice(full.missingPrice.length
-    ? `Garis <b>Unrealized G/L</b> belum bisa digambar: harga pasar ${full.missingPrice.join(', ')} masih kosong.`
+    ? t('chart.note', { list: full.missingPrice.join(', ') })
     : '');
 
   const d = filterByRange(full, state.chartRange);
@@ -150,6 +151,8 @@ export function renderLineChart() {
     c.data.labels = d.labels;
     c.data.datasets[0].data = d.investData;
     c.data.datasets[1].data = d.gainData;
+    c.data.datasets[0].label = t('chart.invest');
+    c.data.datasets[1].label = t('chart.gain');
     c.options.scales.x.ticks.color = axisColor();
     c.options.scales.y.ticks.color = axisColor();
     c.options.scales.x.grid.color = gridColor();
@@ -163,8 +166,8 @@ export function renderLineChart() {
     data: {
       labels: d.labels,
       datasets: [
-        { label: 'Total Investasi', data: d.investData, borderColor: '#3E5C82', backgroundColor: 'rgba(62,92,130,0.08)', borderWidth: 2.5, pointRadius: 3, fill: true, tension: 0.35 },
-        { label: 'Unrealized G/L', data: d.gainData, borderColor: '#3F6E5A', backgroundColor: 'rgba(63,110,90,0.08)', borderWidth: 2.5, borderDash: [6, 3], pointRadius: 3, fill: true, tension: 0.35, spanGaps: false },
+        { label: t('chart.invest'), data: d.investData, borderColor: '#3E5C82', backgroundColor: 'rgba(62,92,130,0.08)', borderWidth: 2.5, pointRadius: 3, fill: true, tension: 0.35 },
+        { label: t('chart.gain'), data: d.gainData, borderColor: '#3F6E5A', backgroundColor: 'rgba(63,110,90,0.08)', borderWidth: 2.5, borderDash: [6, 3], pointRadius: 3, fill: true, tension: 0.35, spanGaps: false },
       ],
     },
     options: {
@@ -177,7 +180,7 @@ export function renderLineChart() {
       },
       scales: {
         x: { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 } },
-        y: { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 }, callback: (v) => '$' + Number(v).toLocaleString('en-US', { notation: 'compact' }) } },
+        y: { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 }, callback: (v) => fmtCompact(v) } },
       },
     },
   });
@@ -241,7 +244,7 @@ export function renderPieChart() {
 
   list.innerHTML = rows.map((r) => `
     <div class="mini-row">
-      <span><span class="dot" style="background:${r.color}"></span>${r.symbol}${r.live ? '' : ' <em class="mini-flag">pokok</em>'}</span>
+      <span><span class="dot" style="background:${r.color}"></span>${r.symbol}${r.live ? '' : ` <em class="mini-flag">${t('pie.costFlag')}</em>`}</span>
       <b>${fmt(r.value)} · ${((r.value / total) * 100).toFixed(1)}%</b>
     </div>`).join('');
 
