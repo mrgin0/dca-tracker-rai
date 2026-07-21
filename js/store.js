@@ -19,6 +19,7 @@ const assetsCol = (uid) => collection(db, 'users', uid, 'assets');
 const txCol = (uid) => collection(db, 'users', uid, 'transactions');
 const brandingDoc = (uid) => doc(db, 'users', uid, 'meta', 'branding');
 const pricesDoc = (uid) => doc(db, 'users', uid, 'meta', 'marketPrices');
+const notesCol = (uid) => collection(db, 'users', uid, 'notes');
 
 const numOr = (v, fallback = 0) => {
   const n = Number(v);
@@ -109,4 +110,39 @@ export async function getLastPriceSnapshot(uid) {
 export function saveLastPriceSnapshot(uid, { prices, fetchedAt }) {
   // setDoc TANPA { merge:true } → dokumen lama sepenuhnya digantikan, bukan ditambah.
   return setDoc(pricesDoc(uid), { prices, fetchedAt });
+}
+
+// ---------- NOTES ----------
+// users/{uid}/notes/{id} -> { text, createdAt, updatedAt }
+// Timestamp disimpan sebagai string ISO supaya urutan & tampilannya tidak
+// bergantung pada serverTimestamp yang sempat null tepat setelah ditulis.
+export async function fetchNotes(uid) {
+  const snap = await getDocs(notesCol(uid));
+  return snap.docs
+    .map((d) => {
+      const r = d.data() || {};
+      return {
+        id: d.id,
+        text: String(r.text || ''),
+        createdAt: r.createdAt || '',
+        updatedAt: r.updatedAt || r.createdAt || '',
+      };
+    })
+    .filter((n) => n.text.trim().length > 0)
+    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+}
+
+export function createNote(uid, text) {
+  const now = new Date().toISOString();
+  return addDoc(notesCol(uid), { text: String(text), createdAt: now, updatedAt: now });
+}
+
+export function updateNote(uid, id, text) {
+  return updateDoc(doc(db, 'users', uid, 'notes', id), {
+    text: String(text), updatedAt: new Date().toISOString(),
+  });
+}
+
+export function deleteNote(uid, id) {
+  return deleteDoc(doc(db, 'users', uid, 'notes', id));
 }
