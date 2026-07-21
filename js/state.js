@@ -23,6 +23,17 @@ export const state = {
   tableSortDir: {},     // symbol -> 'asc' | 'desc' (default 'desc' = terbaru dulu)
   chartRange: 'ALL',
   charts: { line: null, pie: null },
+
+  // --- tampilan ---
+  currency: restoreCurrency(),  // 'USD' | 'IDR' — hanya memengaruhi TAMPILAN
+  lang: restoreLang(),          // 'id' | 'en'
+  rate: null,                   // rupiah per 1 USD
+  rateAt: null,                 // ISO timestamp kurs
+  priceFetchedAt: null,         // kapan harga pasar terakhir diambil
+
+  // --- catatan ---
+  notes: [],
+  editingNoteId: null,
 };
 
 export function initData() {
@@ -72,4 +83,41 @@ export function restoreActiveAsset() {
 }
 export function saveActiveAsset() {
   try { localStorage.setItem(storageKey('active-asset'), state.currentTab); } catch {}
+}
+
+// ---------- MATA UANG TAMPILAN ----------
+export function restoreCurrency() {
+  try { return localStorage.getItem(storageKey('currency')) === 'IDR' ? 'IDR' : 'USD'; }
+  catch { return 'USD'; }
+}
+export function saveCurrency() {
+  try { localStorage.setItem(storageKey('currency'), state.currency); } catch {}
+}
+
+// ---------- BAHASA ----------
+export function restoreLang() {
+  try {
+    const saved = localStorage.getItem(storageKey('lang'));
+    return saved === 'en' ? 'en' : 'id';   // default: Bahasa Indonesia
+  } catch { return 'id'; }
+}
+export function saveLang() {
+  try { localStorage.setItem(storageKey('lang'), state.lang); } catch {}
+}
+
+// ---------- KURS USD -> IDR ----------
+export function restoreRate() {
+  try {
+    const raw = localStorage.getItem(storageKey('usdidr'));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return Number.isFinite(obj?.rate) && obj.rate > 0 ? obj : null;
+  } catch { return null; }
+}
+export function saveRate() {
+  try {
+    localStorage.setItem(storageKey('usdidr'), JSON.stringify({
+      rate: state.rate, at: state.rateAt, savedAt: Date.now(),
+    }));
+  } catch {}
 }
