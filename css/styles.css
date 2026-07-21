@@ -629,12 +629,52 @@ body.modal-open { overflow: hidden; }
    MARKET STRIP (jam pasar + kurs) — di dalam masthead
    ============================================================ */
 .masthead-inner { flex-wrap: wrap; }
+.masthead-inner > * { min-width: 0; max-width: 100%; }
+
 .market-strip {
-  display: flex; align-items: stretch; gap: .5rem;
-  flex: 1 1 380px; min-width: 0;
-  overflow-x: auto; scrollbar-width: none; padding: 2px 0;
+  flex: 1 1 380px;
+  min-width: 0; max-width: 100%;
+  padding: 2px 0;
+  overflow: hidden;          /* jangan pernah melebarkan halaman */
+  position: relative;
 }
+/* Kalau semua kartu muat, strip cukup bisa digeser manual. */
+.market-strip:not(.is-marquee) { overflow-x: auto; scrollbar-width: none; }
 .market-strip::-webkit-scrollbar { display: none; }
+
+.market-track { display: flex; gap: .5rem; width: max-content; }
+.market-set { display: flex; gap: .5rem; flex: 0 0 auto; }
+
+/* ---- MARQUEE: aktif hanya saat kartu tidak muat (diatur clock.js) ---- */
+.market-strip.is-marquee { cursor: pointer; }
+.market-strip.is-marquee .market-track {
+  animation: market-scroll var(--marquee-dur, 20s) linear infinite;
+  will-change: transform;
+}
+.market-strip.is-marquee.is-paused .market-track { animation-play-state: paused; }
+/* Saat dijeda, isinya boleh digeser manual agar kartu terpotong tetap terbaca. */
+.market-strip.is-marquee.is-paused { overflow-x: auto; }
+
+@keyframes market-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--marquee-shift, 0px))); }
+}
+
+/* Bayangan tepi kanan sebagai isyarat masih ada isi di sebelahnya. */
+.market-strip.is-marquee::after {
+  content: '';
+  position: absolute; inset: 0 0 0 auto; width: 34px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--ink));
+  transition: opacity .18s ease;
+}
+.market-strip.is-marquee.is-paused::after { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .market-strip.is-marquee .market-track { animation: none; }
+  .market-strip.is-marquee { overflow-x: auto; }
+  .market-strip.is-marquee::after { display: none; }
+}
 
 .market-chip {
   flex: 0 0 auto;
@@ -745,7 +785,11 @@ body.modal-open { overflow: hidden; }
    RESPONSIF — market strip & notes
    ============================================================ */
 @media (max-width: 1180px) {
-  .market-strip { order: 3; flex: 1 1 100%; }
+  .market-strip { order: 3; flex: 1 1 100%; width: 100%; }
+}
+@media (max-width: 760px) {
+  .masthead-inner { gap: .75rem; }
+  .market-chip { padding: .38rem .6rem; }
 }
 @media (max-width: 560px) {
   .masthead-inner { padding-top: .9rem; padding-bottom: .9rem; }
