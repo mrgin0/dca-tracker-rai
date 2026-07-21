@@ -2,9 +2,33 @@
 //  UTILITIES — formatters, helpers, modal, theme
 // ============================================================
 
+import { state } from './state.js?v=10';
+import { t, locale } from './i18n.js?v=10';
+
+/**
+ * Format uang. Semua data internal disimpan dalam USD; kalau mode tampilan
+ * IDR aktif dan kurs sudah termuat, angkanya dikonversi saat ditampilkan saja.
+ */
 export function fmt(n, dec = 2) {
   if (n === null || n === undefined || isNaN(n)) return '—';
+  if (state.currency === 'IDR' && state.rate) {
+    return 'Rp ' + Math.round(Number(n) * state.rate).toLocaleString('id-ID');
+  }
   return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+/** Versi ringkas untuk sumbu grafik (mis. $12K / Rp 200 jt). */
+export function fmtCompact(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (state.currency === 'IDR' && state.rate) {
+    return 'Rp ' + Number(n * state.rate).toLocaleString('id-ID', { notation: 'compact', maximumFractionDigits: 1 });
+  }
+  return '$' + Number(n).toLocaleString('en-US', { notation: 'compact' });
+}
+
+/** Simbol mata uang tampilan yang sedang aktif. */
+export function currencyCode() {
+  return state.currency === 'IDR' && state.rate ? 'IDR' : 'USD';
 }
 
 export function fmtN(n, dec = 6) {
@@ -35,7 +59,7 @@ export function hexToRgba(hex, alpha) {
 
 export function formatDateWITA(dateStr) {
   try {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('id-ID', {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString(locale(), {
       timeZone: 'Asia/Makassar', day: '2-digit', month: 'short', year: 'numeric',
     });
   } catch { return dateStr; }
@@ -45,7 +69,7 @@ export function formatDateWITA(dateStr) {
 export function formatDateTimeWITA(isoStr) {
   if (!isoStr) return null;
   try {
-    const formatted = new Date(isoStr).toLocaleString('id-ID', {
+    const formatted = new Date(isoStr).toLocaleString(locale(), {
       timeZone: 'Asia/Makassar',
       day: '2-digit', month: 'long', year: 'numeric',
       hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -62,8 +86,8 @@ export function applyTheme(mode) {
   const btn = document.getElementById('theme-btn');
   if (btn) {
     btn.innerHTML = mode === 'dark'
-      ? '<i class="fa-regular fa-sun"></i><span>Light</span>'
-      : '<i class="fa-regular fa-moon"></i><span>Dark</span>';
+      ? `<i class="fa-regular fa-sun"></i><span>${t('nav.light')}</span>`
+      : `<i class="fa-regular fa-moon"></i><span>${t('nav.dark')}</span>`;
   }
   try { localStorage.setItem('meridian-theme', mode); } catch {}
 }
@@ -100,7 +124,10 @@ export function openBackdrop(id) {
 }
 
 // ---------- GENERIC ALERT / CONFIRM MODAL ----------
-export function showModal({ title = 'Info', message = '', type = 'info', confirm = false, okText = 'OK', cancelText = 'Batal' } = {}) {
+export function showModal({ title, message = '', type = 'info', confirm = false, okText, cancelText } = {}) {
+  title = title ?? t('common.info');
+  okText = okText ?? t('common.ok');
+  cancelText = cancelText ?? t('common.cancel');
   return new Promise((resolve) => {
     const backdrop = document.getElementById('app-modal-backdrop');
     const titleEl = document.getElementById('app-modal-title');
@@ -147,12 +174,12 @@ export function showModal({ title = 'Info', message = '', type = 'info', confirm
   });
 }
 
-export function showAlert(message, title = 'Info') {
-  return showModal({ title, message, type: 'info' });
+export function showAlert(message, title) {
+  return showModal({ title: title ?? t('common.info'), message, type: 'info' });
 }
 
-export function showConfirm(message, title = 'Konfirmasi', type = 'danger') {
-  return showModal({ title, message, type, confirm: true, okText: 'Ya, lanjut', cancelText: 'Batal' });
+export function showConfirm(message, title, type = 'danger') {
+  return showModal({ title: title ?? t('common.info'), message, type, confirm: true, okText: t('common.confirm'), cancelText: t('common.cancel') });
 }
 
 // ---------- IMAGE → resized PNG data URL (for logo upload) ----------
