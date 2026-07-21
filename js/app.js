@@ -2,7 +2,7 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf } from './state.js?v=10';
+import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf, saveCurrency } from './state.js?v=10';
 import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA, fmt, fmtPct } from './utils.js?v=10';
 import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=10';
 import { auth } from './firebase-config.js?v=10';
@@ -17,6 +17,12 @@ import { renderAll, renderTabContent, setLoading } from './ui.js?v=10';
 import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
 import { exportXLSX, exportBackupJSON } from './export.js?v=10';
 import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
+import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
+import { initClocks, renderClocks, renderRateChip, loadRate } from './clock.js?v=10';
+import {
+  loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
+  handleSaveNote, handleDeleteNote,
+} from './notes.js?v=10';
 
 const $ = (id) => document.getElementById(id);
 
@@ -45,6 +51,50 @@ function ensureUser() {
   return state.user;
 }
 
+// ---------- MATA UANG & BAHASA ----------
+/** Sinkronkan label tombol mata uang + catatan "harga tetap USD". */
+function applyCurrencyUI() {
+  const label = $('currency-label');
+  if (label) label.textContent = state.currency;
+  const btn = $('currency-btn');
+  if (btn) btn.classList.toggle('is-idr', state.currency === 'IDR');
+}
+
+async function handleToggleCurrency() {
+  state.currency = state.currency === 'USD' ? 'IDR' : 'USD';
+  saveCurrency();
+  applyCurrencyUI();
+  // Butuh kurs sebelum bisa menampilkan rupiah.
+  if (state.currency === 'IDR' && !state.rate) await loadRate();
+  renderAll();          // termasuk baris harga + catatan "harga tetap USD"
+  renderCharts();
+}
+
+function applyLangUI() {
+  const label = $('lang-label');
+  if (label) label.textContent = state.lang.toUpperCase();
+}
+
+function handleToggleLang() {
+  toggleLang();          // sudah memanggil applyI18n() di dalamnya
+  applyLangUI();
+  applyTheme(document.body.classList.contains('dark') ? 'dark' : 'light'); // label Dark/Light
+  renderClocks();
+  renderRateChip();
+  renderAll();
+  renderNotes();
+  setPriceHint();        // applyI18n() menimpa hint; kembalikan stempel waktunya
+}
+
+/** Tampilkan kapan harga pasar terakhir diambil (kalau ada). */
+function setPriceHint() {
+  const hint = $('price-hint');
+  if (!hint) return;
+  hint.textContent = state.priceFetchedAt
+    ? t('prices.updated', { at: formatDateTimeWITA(state.priceFetchedAt) })
+    : t('prices.hint');
+}
+
 // ---------- DATA LOAD ----------
 // Token pengaman: kalau ada permintaan load baru (mis. onAuth terpanggil dua
 // kali), hasil load lama dibuang. Tanpa ini dua load bisa saling menimpa dan
@@ -71,7 +121,7 @@ async function loadAll() {
   state.assets = [...DEFAULT_ASSETS];
   if (!state.user) { initData(); renderAll(); return; }
 
-  setLoading('Memuat data dari Firebase…');
+  setLoading(t('common.loading'));
   try {
     const custom = await fetchAssets(state.user.uid);
     if (token !== loadToken) return;
@@ -119,9 +169,9 @@ function applyPriceSnapshot(snapshot) {
   Object.entries(snapshot.prices).forEach(([symbol, price]) => {
     if (applyPrice(symbol, price)) applied++;
   });
-  const hint = $('price-hint');
-  if (hint && snapshot.fetchedAt) {
-    hint.textContent = `Harga diperbarui: ${formatDateTimeWITA(snapshot.fetchedAt)}`;
+  if (snapshot.fetchedAt) {
+    state.priceFetchedAt = snapshot.fetchedAt;
+    setPriceHint();
   }
   return applied > 0;
 }
@@ -208,7 +258,7 @@ function openInstrumentModal() {
 }
 
 async function handleAddAsset() {
-  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
+  if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
   const symbol = $('asset-symbol').value.trim().toUpperCase();
   const name = $('asset-name').value.trim();
   const unit = $('asset-unit').value.trim() || 'unit';
@@ -227,7 +277,7 @@ async function handleAddAsset() {
 }
 
 async function handleRemoveAsset(symbol) {
-  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
+  if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
   if (DEFAULT_ASSETS.some((a) => a.symbol === symbol)) return showAlert('Aset default tidak bisa dihapus.');
   const trxCount = entriesOf(symbol).length;
   if (trxCount > 0) return showAlert(`Instrumen ${symbol} masih punya ${trxCount} transaksi. Hapus transaksinya dulu.`);
@@ -259,9 +309,9 @@ function validEntry(v) {
 }
 
 async function handleSaveEntry(asset) {
-  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
+  if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
   const v = readEntryFields('f');
-  if (!validEntry(v)) return showAlert('Lengkapi semua field dengan angka lebih besar dari 0.');
+  if (!validEntry(v)) return showAlert(t('common.fillFields'));
   try {
     await createTransaction(state.user.uid, { asset, ...v });
   } catch (e) {
@@ -273,8 +323,8 @@ async function handleSaveEntry(asset) {
 }
 
 async function handleDelEntry(asset, id) {
-  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
-  const ok = await showConfirm('Hapus transaksi ini?', 'Hapus transaksi?', 'danger');
+  if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
+  const ok = await showConfirm(t('common.confirmDelTx'), t('common.confirmDelTxTitle'), 'danger');
   if (!ok) return;
   try { await deleteTransaction(state.user.uid, id); }
   catch (e) { return showAlert(describeDataError(e), 'Gagal menghapus transaksi'); }
@@ -299,7 +349,7 @@ function findTx(symbol, id) {
 function openEditModal(symbol, id) {
   const found = findTx(symbol, id);
   if (!found) {
-    return showAlert('Transaksi tidak ditemukan — mungkin sudah berubah. Muat ulang halaman lalu coba lagi.', 'Tidak bisa diubah');
+    return showAlert(t('edit.notFound'), t('edit.notFoundTitle'));
   }
   const { tx } = found;
   const a = assetOf(found.symbol);
@@ -307,13 +357,13 @@ function openEditModal(symbol, id) {
   state.editId = String(tx.id);
   state.editAsset = found.symbol;
 
-  $('edit-modal-sub').textContent = `${a?.name || found.symbol} · ubah lalu simpan. Unrealized & % dihitung ulang otomatis.`;
+  $('edit-modal-sub').textContent = t('edit.sub', { name: a?.name || found.symbol });
   $('e-tanggal').value = tx.tanggal || '';
   $('e-harga').value = Number.isFinite(Number(tx.hargaBeli)) ? tx.hargaBeli : '';
   $('e-unit').value = Number.isFinite(Number(tx.jumlahUnit)) ? tx.jumlahUnit : '';
   $('e-total').value = Number.isFinite(Number(tx.totalBeli)) ? tx.totalBeli : '';
   $('e-unit-label').textContent = a?.unit || 'unit';
-  $('e-harga-label').textContent = `Harga beli / ${a?.unit || 'unit'} ($)`;
+  $('e-harga-label').textContent = t('form.price', { unit: a?.unit || 'unit' });
 
   renderEditPreview();
   openBackdrop('edit-modal-backdrop');
@@ -338,7 +388,7 @@ function renderEditPreview() {
   if (cp === null || !Number.isFinite(units)) {
     nowEl.textContent = '—';
     gainEl.textContent = '—'; gainEl.className = '';
-    pctEl.textContent = cp === null ? 'harga pasar kosong' : '—'; pctEl.className = '';
+    pctEl.textContent = cp === null ? t('edit.noPrice') : '—'; pctEl.className = '';
     return;
   }
   const nilai = units * cp;
@@ -356,11 +406,11 @@ function renderEditPreview() {
 }
 
 async function handleEditSave() {
-  if (!ensureUser()) return showAlert('Sesi login belum aktif. Coba refresh halaman lalu login ulang.', 'Belum login');
+  if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
   const id = state.editId;
   if (!id) return closeEditModal();
   const v = readEntryFields('e');
-  if (!validEntry(v)) return showAlert('Lengkapi semua field dengan angka lebih besar dari 0.');
+  if (!validEntry(v)) return showAlert(t('common.fillFields'));
   try {
     await updateTransaction(state.user.uid, id, v);
   } catch (e) {
@@ -385,10 +435,11 @@ async function handleEditDelete() {
 async function handleFetchPrices() {
   const hint = $('price-hint');
   try {
-    hint.textContent = 'Mengambil harga realtime…';
+    hint.textContent = t('prices.loading');
     const { filled, prices, at } = await fetchMarketPrices();
     if (filled) {
-      hint.textContent = `Harga diperbarui: ${formatDateTimeWITA(at)}`;
+      state.priceFetchedAt = at;
+      setPriceHint();
       if (ensureUser()) {
         try {
           await saveLastPriceSnapshot(state.user.uid, { prices, fetchedAt: at });
@@ -397,15 +448,15 @@ async function handleFetchPrices() {
         }
       }
     } else {
-      hint.textContent = 'Tidak ada harga valid dari ticker yang dipakai.';
+      hint.textContent = t('prices.noValid');
     }
     // Render ulang tabel + ringkasan + kedua grafik agar semuanya ikut harga baru.
     renderTabContent();
     renderCharts();
     if (!$('edit-modal-backdrop').hidden) renderEditPreview();
   } catch (e) {
-    if (e.message === 'NO_TICKERS') { hint.textContent = 'Belum ada aset dengan ticker. Isi harga pasar manual.'; return; }
-    hint.textContent = 'Ambil data gagal. Cek endpoint harga atau tunggu jika sedang rate limit.';
+    if (e.message === 'NO_TICKERS') { hint.textContent = t('prices.noTicker'); return; }
+    hint.textContent = t('prices.failed');
     showAlert('Ambil data gagal: ' + (e.message || e));
   }
 }
@@ -510,6 +561,14 @@ function wireEvents() {
   $('edit-save').addEventListener('click', handleEditSave);
   $('edit-delete').addEventListener('click', handleEditDelete);
 
+  $('currency-btn').addEventListener('click', handleToggleCurrency);
+  $('lang-btn').addEventListener('click', handleToggleLang);
+  $('rate-chip').addEventListener('click', async () => {
+    await loadRate({ force: true });
+    if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+  });
+  $('note-add').addEventListener('click', handleAddNote);
+
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
   $('backup-json-btn').addEventListener('click', exportBackupJSON);
@@ -537,6 +596,10 @@ function wireEvents() {
         break;
       case 'set-chart-range': setChartRange(range); break;
       case 'reset-zoom': resetChartZoom(); break;
+      case 'note-edit': startEditNote(id); break;
+      case 'note-cancel': cancelEditNote(); break;
+      case 'note-save': handleSaveNote(id); break;
+      case 'note-del': handleDeleteNote(id); break;
     }
   });
 
@@ -593,6 +656,8 @@ async function handleUserChange(user) {
   state.data = {};
   state.editId = null;
   state.editAsset = null;
+  state.notes = [];
+  state.editingNoteId = null;
   closeBackdrop('edit-modal-backdrop');
   setAuthedUI(!!user);
 
@@ -602,21 +667,34 @@ async function handleUserChange(user) {
     await loadBranding();
     await loadAll();
     await loadLastPriceSnapshot();
+    await loadNotes();
   } else {
     console.info('[meridian] onAuth -> signed out');
     initData();
     renderAll();
+    renderNotes();
   }
 }
 
 function boot() {
   try {
+    setLang(state.lang);       // pasang terjemahan awal + <html lang>
+    applyLangUI();
+    applyCurrencyUI();
     initTheme();
     applyBranding(getCachedBranding());
     initData();
     wireEvents();
+    initClocks();
     renderAll();
+    renderNotes();
     setAuthedUI(false);
+
+    // Kurs dimuat di latar; kalau mode IDR aktif, tampilan disegarkan setelahnya.
+    loadRate().then(() => {
+      renderRateChip();
+      if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+    });
 
     // onAuthStateChanged selalu dipanggil sekali di awal dengan user saat ini,
     // jadi tidak perlu memanggil handleUserChange manual (itu bikin load dobel).
