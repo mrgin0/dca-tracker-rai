@@ -25,23 +25,29 @@
           <div class="brand-tag" id="brand-tag">Private Wealth · Ledger DCA</div>
         </div>
       </div>
+      <!-- Strip jam & kurs. Kalau tidak muat, isinya diduplikasi oleh clock.js
+           lalu digeser terus-menerus (marquee); tap untuk menghentikan. -->
       <div class="market-strip" id="market-strip" aria-label="Jam pasar & kurs">
-        <div class="market-chip">
-          <span class="chip-label"><span class="chip-dot" id="clock-dot-wita"></span><span id="clock-label-wita">Indonesia (WITA)</span></span>
-          <span class="chip-value"><b class="chip-cc">ID</b><span id="clock-time-wita">—</span></span>
+        <div class="market-track">
+          <div class="market-set">
+            <div class="market-chip">
+              <span class="chip-label"><span class="chip-dot" data-clock-dot="wita"></span><span data-clock-label="wita">Indonesia (WITA)</span></span>
+              <span class="chip-value"><b class="chip-cc">ID</b><span data-clock-time="wita">—</span></span>
+            </div>
+            <div class="market-chip">
+              <span class="chip-label"><span class="chip-dot" data-clock-dot="lse"></span><span data-clock-label="lse">London (LSE)</span></span>
+              <span class="chip-value"><b class="chip-cc">GB</b><span data-clock-time="lse">—</span></span>
+            </div>
+            <div class="market-chip">
+              <span class="chip-label"><span class="chip-dot" data-clock-dot="nyse"></span><span data-clock-label="nyse">New York (NYSE)</span></span>
+              <span class="chip-value"><b class="chip-cc">US</b><span data-clock-time="nyse">—</span></span>
+            </div>
+            <button class="market-chip rate-chip" data-rate-chip type="button">
+              <span class="chip-rate" data-rate-value>1 USD = Rp —</span>
+              <span class="chip-sub" data-rate-sub>…</span>
+            </button>
+          </div>
         </div>
-        <div class="market-chip">
-          <span class="chip-label"><span class="chip-dot" id="clock-dot-lse"></span><span id="clock-label-lse">London (LSE)</span></span>
-          <span class="chip-value"><b class="chip-cc">GB</b><span id="clock-time-lse">—</span></span>
-        </div>
-        <div class="market-chip">
-          <span class="chip-label"><span class="chip-dot" id="clock-dot-nyse"></span><span id="clock-label-nyse">New York (NYSE)</span></span>
-          <span class="chip-value"><b class="chip-cc">US</b><span id="clock-time-nyse">—</span></span>
-        </div>
-        <button class="market-chip rate-chip" id="rate-chip" type="button">
-          <span class="chip-rate" id="rate-value">1 USD = Rp —</span>
-          <span class="chip-sub" id="rate-sub">…</span>
-        </button>
       </div>
 
       <nav class="masthead-actions">
