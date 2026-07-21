@@ -37,8 +37,8 @@ export function applyBranding(b) {
   set('intro-eyebrow', b.eyebrow);
   set('intro-title', b.pageTitle);
   set('intro-lede', b.lede);
-  set('footer-brand', `${b.title} Ledger`);
-  document.title = `${b.title} (未来) · Untuk yang Akan Datang`;
+  set('footer-brand', `${b.title} (未来) · Untuk yang Akan Datang`);
+  document.title = `${b.title} MI&RAI';
 
   const mono = (b.title || 'M').trim().charAt(0).toUpperCase() || 'M';
   document.querySelectorAll('[data-brand-logo], .logo-preview').forEach((el) => {
