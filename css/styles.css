@@ -624,3 +624,134 @@ body.modal-open { overflow: hidden; }
   .edit-actions .spacer { display: none; }
   .edit-actions .btn { flex: 1 1 100%; justify-content: center; }
 }
+
+/* ============================================================
+   MARKET STRIP (jam pasar + kurs) — di dalam masthead
+   ============================================================ */
+.masthead-inner { flex-wrap: wrap; }
+.market-strip {
+  display: flex; align-items: stretch; gap: .5rem;
+  flex: 1 1 380px; min-width: 0;
+  overflow-x: auto; scrollbar-width: none; padding: 2px 0;
+}
+.market-strip::-webkit-scrollbar { display: none; }
+
+.market-chip {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  padding: .4rem .7rem;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(199, 169, 104, .28);
+  border-radius: 10px;
+  font-family: var(--sans);
+  text-align: left;
+}
+.chip-label {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--on-ink-muted); white-space: nowrap;
+}
+.chip-dot {
+  width: 6px; height: 6px; border-radius: 999px; flex: none;
+  background: #6B7686;                 /* tutup */
+  box-shadow: 0 0 0 2px rgba(107, 118, 134, .18);
+}
+.chip-dot.open {
+  background: #4ED08F;                 /* buka */
+  box-shadow: 0 0 0 2px rgba(78, 208, 143, .2);
+}
+.chip-value {
+  display: flex; align-items: baseline; gap: .4rem;
+  font-size: 12.5px; color: var(--on-ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.chip-cc {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .06em;
+  color: var(--champagne-soft);
+  border: 1px solid rgba(199, 169, 104, .35);
+  border-radius: 4px; padding: 0 3px;
+}
+
+.rate-chip {
+  cursor: pointer; font: inherit;
+  background: rgba(199, 169, 104, .1);
+  border-color: rgba(199, 169, 104, .45);
+  transition: background .18s ease, border-color .18s ease;
+}
+.rate-chip:hover { background: rgba(199, 169, 104, .2); border-color: var(--champagne); }
+.chip-rate {
+  font-size: 13px; font-weight: 600; color: var(--on-ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.chip-sub { font-size: 9.5px; color: var(--on-ink-muted); white-space: nowrap; }
+
+/* Tombol mata uang & bahasa */
+.currency-toggle span, .lang-toggle span {
+  font-weight: 700; letter-spacing: .04em; font-size: 12px; min-width: 26px; text-align: center;
+}
+.currency-toggle.is-idr { border-color: var(--champagne); background: rgba(199, 169, 104, .16); }
+
+/* ============================================================
+   NOTES CARD
+   ============================================================ */
+.notes-panel .panel-head { align-items: flex-start; }
+.note-count { font-size: 11.5px; color: var(--muted-2); white-space: nowrap; }
+
+.note-composer { display: flex; flex-direction: column; gap: .7rem; margin-top: 1rem; }
+.note-composer textarea {
+  font-family: var(--sans); font-size: 14px; line-height: 1.6;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  padding: .7rem .8rem; background: var(--surface); color: var(--text);
+  width: 100%; resize: vertical; min-height: 84px;
+}
+.note-composer textarea:focus {
+  outline: none; border-color: var(--champagne); box-shadow: 0 0 0 3px rgba(168, 133, 63, .14);
+}
+.note-composer .btn { align-self: flex-start; }
+
+.note-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: .8rem; margin-top: 1.1rem;
+}
+.note-list .empty { grid-column: 1 / -1; }
+
+.note-card {
+  display: flex; flex-direction: column; gap: .7rem;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: .9rem 1rem;
+  min-width: 0;
+}
+.note-card.editing { border-color: var(--champagne); box-shadow: 0 0 0 3px rgba(168, 133, 63, .12); }
+.note-text {
+  font-size: 14px; line-height: 1.65; color: var(--text);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.note-edit-input {
+  font-family: var(--sans); font-size: 14px; line-height: 1.6;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  padding: .6rem .7rem; background: var(--surface); color: var(--text);
+  width: 100%; resize: vertical;
+}
+.note-edit-input:focus { outline: none; border-color: var(--champagne); }
+.note-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .6rem; flex-wrap: wrap;
+  border-top: 1px solid var(--line); padding-top: .6rem;
+}
+.note-stamp { font-size: 11px; color: var(--muted-2); }
+.note-actions { display: flex; gap: .3rem; flex-shrink: 0; }
+
+/* ============================================================
+   RESPONSIF — market strip & notes
+   ============================================================ */
+@media (max-width: 1180px) {
+  .market-strip { order: 3; flex: 1 1 100%; }
+}
+@media (max-width: 560px) {
+  .masthead-inner { padding-top: .9rem; padding-bottom: .9rem; }
+  .market-chip { padding: .35rem .55rem; }
+  .chip-value, .chip-rate { font-size: 11.5px; }
+  .note-list { grid-template-columns: 1fr; }
+  .note-composer .btn { align-self: stretch; justify-content: center; }
+  .note-foot { align-items: flex-start; }
+}
