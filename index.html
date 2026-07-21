@@ -6,12 +6,12 @@
 <meta name="description" content="Family office DCA tracker — catat pembelian rutin, pantau unrealized gain, alokasi aset." />
 <title>Meridian — Family Office Ledger</title>
 
-<link rel="icon" href="favicon.svg?v=10" type="image/svg+xml" />
+<link rel="icon" href="favicon.svg?v=11" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link rel="stylesheet" href="css/styles.css?v=10" />
+<link rel="stylesheet" href="css/styles.css?v=11" />
 </head>
 <body class="logged-out">
 
@@ -25,14 +25,39 @@
           <div class="brand-tag" id="brand-tag">Private Wealth · Ledger DCA</div>
         </div>
       </div>
+      <div class="market-strip" id="market-strip" aria-label="Jam pasar & kurs">
+        <div class="market-chip">
+          <span class="chip-label"><span class="chip-dot" id="clock-dot-wita"></span><span id="clock-label-wita">Indonesia (WITA)</span></span>
+          <span class="chip-value"><b class="chip-cc">ID</b><span id="clock-time-wita">—</span></span>
+        </div>
+        <div class="market-chip">
+          <span class="chip-label"><span class="chip-dot" id="clock-dot-lse"></span><span id="clock-label-lse">London (LSE)</span></span>
+          <span class="chip-value"><b class="chip-cc">GB</b><span id="clock-time-lse">—</span></span>
+        </div>
+        <div class="market-chip">
+          <span class="chip-label"><span class="chip-dot" id="clock-dot-nyse"></span><span id="clock-label-nyse">New York (NYSE)</span></span>
+          <span class="chip-value"><b class="chip-cc">US</b><span id="clock-time-nyse">—</span></span>
+        </div>
+        <button class="market-chip rate-chip" id="rate-chip" type="button">
+          <span class="chip-rate" id="rate-value">1 USD = Rp —</span>
+          <span class="chip-sub" id="rate-sub">…</span>
+        </button>
+      </div>
+
       <nav class="masthead-actions">
         <button class="ghost-btn theme-toggle" id="theme-btn" type="button">
           <i class="fa-regular fa-moon"></i><span>Dark</span>
         </button>
-        <button class="ghost-btn" id="setting-btn" type="button">
-          <i class="fa-solid fa-gear"></i><span>Setting</span>
+        <button class="ghost-btn currency-toggle" id="currency-btn" type="button" data-i18n-title="nav.currency">
+          <i class="fa-solid fa-money-bill-transfer"></i><span id="currency-label">USD</span>
         </button>
-        <button class="ghost-btn ghost-danger" id="logout-btn" type="button">Keluar</button>
+        <button class="ghost-btn lang-toggle" id="lang-btn" type="button" data-i18n-title="nav.lang">
+          <i class="fa-solid fa-language"></i><span id="lang-label">ID</span>
+        </button>
+        <button class="ghost-btn" id="setting-btn" type="button">
+          <i class="fa-solid fa-gear"></i><span data-i18n="nav.setting">Setting</span>
+        </button>
+        <button class="ghost-btn ghost-danger" id="logout-btn" type="button" data-i18n="nav.logout">Keluar</button>
       </nav>
     </div>
   </header>
@@ -41,18 +66,18 @@
   <section class="login-view" id="login-view">
     <div class="login-card">
       <div class="brand-logo lg" data-brand-logo><span data-monogram>M</span></div>
-      <h1 class="login-title">Masuk ke akun</h1>
-      <p class="login-sub">Portofolio pribadi Anda, tersimpan aman.</p>
+      <h1 class="login-title" data-i18n="login.title">Masuk ke akun</h1>
+      <p class="login-sub" data-i18n="login.sub">Portofolio pribadi Anda, tersimpan aman.</p>
       <label class="field">
-        <span>Email</span>
+        <span data-i18n="login.email">Email</span>
         <input type="email" id="auth-email" autocomplete="email" placeholder="nama@email.com" />
       </label>
       <label class="field">
-        <span>Kata sandi</span>
+        <span data-i18n="login.password">Kata sandi</span>
         <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" />
       </label>
-      <button class="btn btn-primary btn-block" id="signin-btn" type="button">Masuk</button>
-      <button class="link-btn" id="forgot-btn" type="button">Lupa password?</button>
+      <button class="btn btn-primary btn-block" id="signin-btn" type="button" data-i18n="login.signin">Masuk</button>
+      <button class="link-btn" id="forgot-btn" type="button" data-i18n="login.forgot">Lupa password?</button>
       <p class="login-error" id="login-error" hidden></p>
     </div>
   </section>
@@ -67,24 +92,24 @@
 
     <section class="statement" aria-label="Ringkasan nilai portofolio">
       <div class="statement-item">
-        <span class="statement-label">Total Investasi</span>
+        <span class="statement-label" data-i18n="stmt.total">Total Investasi</span>
         <span class="statement-value" id="s-total">$0</span>
-        <span class="statement-sub">nilai pokok</span>
+        <span class="statement-sub" data-i18n="stmt.totalSub">nilai pokok</span>
       </div>
       <div class="statement-item">
-        <span class="statement-label">Nilai Sekarang</span>
+        <span class="statement-label" data-i18n="stmt.now">Nilai Sekarang</span>
         <span class="statement-value" id="s-now">—</span>
-        <span class="statement-sub">valuasi pasar</span>
+        <span class="statement-sub" data-i18n="stmt.nowSub">valuasi pasar</span>
       </div>
       <div class="statement-item">
-        <span class="statement-label">Unrealized Gain / Loss</span>
+        <span class="statement-label" data-i18n="stmt.gain">Unrealized Gain / Loss</span>
         <span class="statement-value" id="s-gain">—</span>
         <span class="statement-sub" id="s-pct">isi harga pasar</span>
       </div>
       <div class="statement-item">
-        <span class="statement-label">Total Transaksi</span>
+        <span class="statement-label" data-i18n="stmt.tx">Total Transaksi</span>
         <span class="statement-value" id="s-tx">0</span>
-        <span class="statement-sub">pembelian tercatat</span>
+        <span class="statement-sub" data-i18n="stmt.txSub">pembelian tercatat</span>
       </div>
     </section>
     <p class="statement-note" id="statement-note" hidden></p>
@@ -92,15 +117,16 @@
     <section class="panel prices">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">Valuasi Pasar</p>
-          <h2 class="panel-title">Harga terkini per instrumen</h2>
+          <p class="eyebrow" data-i18n="prices.eyebrow">Valuasi Pasar</p>
+          <h2 class="panel-title" data-i18n="prices.title">Harga terkini per instrumen</h2>
         </div>
         <button class="btn btn-quiet" id="fetch-prices-btn" type="button">
-          <i class="fa-solid fa-arrows-rotate"></i> Ambil Data
+          <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="prices.fetch">Ambil Data</span>
         </button>
       </div>
       <div class="price-rows" id="price-rows"></div>
-      <p class="hint" id="price-hint">Harga tersimpan hanya di sesi ini, tidak disimpan sebagai histori. Klik Ambil Data untuk memuat harga realtime.</p>
+      <p class="hint" id="price-usd-note" hidden></p>
+      <p class="hint" id="price-hint" data-i18n="prices.hint">Harga tersimpan hanya di sesi ini, tidak disimpan sebagai histori. Klik Ambil Data untuk memuat harga realtime.</p>
     </section>
 
     <nav class="tabs" id="tabs" aria-label="Pilih instrumen"></nav>
@@ -111,64 +137,83 @@
       <div class="panel chart-panel">
         <div class="panel-head stacked">
           <div>
-            <p class="eyebrow">Perkembangan</p>
-            <h2 class="panel-title">Akumulasi &amp; unrealized gain</h2>
+            <p class="eyebrow" data-i18n="chart.eyebrow">Perkembangan</p>
+            <h2 class="panel-title" data-i18n="chart.title">Akumulasi &amp; unrealized gain</h2>
           </div>
           <div class="legend">
-            <span><i class="swatch swatch-invest"></i>Total Investasi</span>
-            <span><i class="swatch swatch-gain"></i>Unrealized G/L</span>
+            <span><i class="swatch swatch-invest"></i><span data-i18n="chart.invest">Total Investasi</span></span>
+            <span><i class="swatch swatch-gain"></i><span data-i18n="chart.gain">Unrealized G/L</span></span>
           </div>
         </div>
         <div id="chart-empty" class="empty">
-          <i class="fa-regular fa-chart-bar"></i>
-          Tambahkan transaksi &amp; isi harga pasar untuk melihat grafik.
+          <i class="fa-regular fa-chart-bar"></i><span data-i18n="chart.empty">Tambahkan transaksi &amp; isi harga pasar untuk melihat grafik.</span>
         </div>
         <div class="chart-toolbar">
           <div class="chart-range-row" id="chart-range-row">
-            <button class="range-btn" data-action="set-chart-range" data-range="1W">1 Mgg</button>
-            <button class="range-btn" data-action="set-chart-range" data-range="1M">1 Bln</button>
-            <button class="range-btn" data-action="set-chart-range" data-range="1Y">1 Thn</button>
-            <button class="range-btn" data-action="set-chart-range" data-range="5Y">5 Thn</button>
-            <button class="range-btn" data-action="set-chart-range" data-range="10Y">10 Thn</button>
-            <button class="range-btn active" data-action="set-chart-range" data-range="ALL">Semua</button>
+            <button class="range-btn" data-action="set-chart-range" data-range="1W" data-i18n="chart.r1w">1 Mgg</button>
+            <button class="range-btn" data-action="set-chart-range" data-range="1M" data-i18n="chart.r1m">1 Bln</button>
+            <button class="range-btn" data-action="set-chart-range" data-range="1Y" data-i18n="chart.r1y">1 Thn</button>
+            <button class="range-btn" data-action="set-chart-range" data-range="5Y" data-i18n="chart.r5y">5 Thn</button>
+            <button class="range-btn" data-action="set-chart-range" data-range="10Y" data-i18n="chart.r10y">10 Thn</button>
+            <button class="range-btn active" data-action="set-chart-range" data-range="ALL" data-i18n="chart.rall">Semua</button>
           </div>
           <button class="btn btn-sm btn-quiet" data-action="reset-zoom" type="button" title="Reset Zoom">
-            <i class="fa-solid fa-magnifying-glass-minus"></i> Reset Zoom
+            <i class="fa-solid fa-magnifying-glass-minus"></i> <span data-i18n="chart.resetZoom">Reset Zoom</span>
           </button>
         </div>
         <p class="hint chart-note" id="chart-note" hidden></p>
-        <p class="hint chart-zoom-hint">Scroll mouse untuk zoom, drag untuk geser, atau cubit layar (pinch) di HP.</p>
+        <p class="hint chart-zoom-hint" data-i18n="chart.zoomHint">Scroll mouse untuk zoom, drag untuk geser, atau cubit layar (pinch) di HP.</p>
         <div class="chart-wrap" id="chart-wrapper" hidden><canvas id="portfolioChart"></canvas></div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
           <div>
-            <p class="eyebrow">Komposisi</p>
-            <h2 class="panel-title">Alokasi aset</h2>
-            <p class="hint" style="margin-top:.35rem">Memakai nilai pasar terkini; aset tanpa harga dihitung dari harga pokok.</p>
+            <p class="eyebrow" data-i18n="pie.eyebrow">Komposisi</p>
+            <h2 class="panel-title" data-i18n="pie.title">Alokasi aset</h2>
+            <p class="hint" style="margin-top:.35rem" data-i18n="pie.hint">Memakai nilai pasar terkini; aset tanpa harga dihitung dari harga pokok.</p>
           </div>
         </div>
-        <div id="pie-empty" class="empty"><i class="fa-solid fa-chart-pie"></i>Belum ada data investasi.</div>
+        <div id="pie-empty" class="empty"><i class="fa-solid fa-chart-pie"></i><span data-i18n="pie.empty">Belum ada data investasi.</span></div>
         <div class="pie-wrap" id="pie-wrapper" hidden><canvas id="assetPieChart"></canvas></div>
         <div class="asset-mini-list" id="asset-mini-list"></div>
       </div>
     </section>
 
+    <section class="panel notes-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow" data-i18n="notes.eyebrow">Jurnal</p>
+          <h2 class="panel-title" data-i18n="notes.title">Catatan portofolio</h2>
+        </div>
+        <span class="note-count" id="note-count"></span>
+      </div>
+
+      <div class="note-composer">
+        <textarea id="note-input" rows="3" data-i18n-ph="notes.placeholder"
+                  placeholder="Tulis catatan: alasan beli, target, rencana rebalancing…"></textarea>
+        <button class="btn btn-primary" id="note-add" type="button">
+          <i class="fa-solid fa-plus"></i> <span data-i18n="notes.add">Tambah Catatan</span>
+        </button>
+      </div>
+
+      <div class="note-list" id="note-list"></div>
+    </section>
+
     <section class="panel export-bar">
       <div>
-        <p class="eyebrow">Arsip</p>
-        <h2 class="panel-title">Unduh catatan portofolio</h2>
+        <p class="eyebrow" data-i18n="export.eyebrow">Arsip</p>
+        <h2 class="panel-title" data-i18n="export.title">Unduh catatan portofolio</h2>
       </div>
       <div class="export-actions">
-        <button class="btn" id="export-btn" type="button"><i class="fa-regular fa-file-excel"></i> Export .xlsx</button>
-        <button class="btn" id="backup-json-btn" type="button"><i class="fa-solid fa-database"></i> Backup Data (JSON)</button>
+        <button class="btn" id="export-btn" type="button"><i class="fa-regular fa-file-excel"></i> <span data-i18n="export.xlsx">Export .xlsx</span></button>
+        <button class="btn" id="backup-json-btn" type="button"><i class="fa-solid fa-database"></i> <span data-i18n="export.json">Backup Data (JSON)</span></button>
       </div>
     </section>
 
     <footer class="site-footer">
       <span id="footer-brand">Meridian Ledger</span>
-      <span class="muted">Data pribadi Anda, tersimpan aman di Firebase.</span>
+      <span class="muted" data-i18n="footer.tag">Data pribadi Anda, tersimpan aman di Firebase.</span>
     </footer>
   </main>
 
@@ -176,27 +221,27 @@
   <div class="modal-backdrop" id="edit-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title" hidden>
     <div class="app-modal wide">
       <div class="modal-icon"><i class="fa-solid fa-pen-to-square"></i></div>
-      <div class="modal-title" id="edit-modal-title">Ubah Transaksi</div>
+      <div class="modal-title" id="edit-modal-title" data-i18n="edit.title">Ubah Transaksi</div>
       <div class="modal-message" id="edit-modal-sub"></div>
       <div class="field-grid modal-grid">
-        <label class="field"><span>Tanggal pembelian</span><input type="date" id="e-tanggal" /></label>
+        <label class="field"><span data-i18n="edit.date">Tanggal pembelian</span><input type="date" id="e-tanggal" /></label>
         <label class="field"><span id="e-harga-label">Harga beli ($)</span><input type="number" id="e-harga" min="0" step="0.01" inputmode="decimal" placeholder="cth: 480.50" /></label>
-        <label class="field"><span>Jumlah / qty (<span id="e-unit-label">unit</span>)</span><input type="number" id="e-unit" min="0" step="any" inputmode="decimal" placeholder="cth: 1.5" /></label>
-        <label class="field"><span>Total beli ($)</span><input type="number" id="e-total" min="0" step="0.01" inputmode="decimal" placeholder="otomatis harga × qty" /></label>
+        <label class="field"><span><span data-i18n="edit.qty">Jumlah / qty</span> (<span id="e-unit-label">unit</span>)</span><input type="number" id="e-unit" min="0" step="any" inputmode="decimal" placeholder="cth: 1.5" /></label>
+        <label class="field"><span data-i18n="edit.total">Total beli ($)</span><input type="number" id="e-total" min="0" step="0.01" inputmode="decimal" placeholder="otomatis harga × qty" /></label>
       </div>
 
       <div class="edit-preview">
-        <div><span>Nilai sekarang</span><b id="e-now">—</b></div>
-        <div><span>Unrealized</span><b id="e-gain">—</b></div>
-        <div><span>%</span><b id="e-pct">—</b></div>
+        <div><span data-i18n="edit.now">Nilai sekarang</span><b id="e-now">—</b></div>
+        <div><span data-i18n="edit.gain">Unrealized</span><b id="e-gain">—</b></div>
+        <div><span data-i18n="edit.pct">%</span><b id="e-pct">—</b></div>
       </div>
-      <p class="hint">Unrealized &amp; % tidak diketik manual — keduanya dihitung dari harga pasar terkini dikali jumlah, lalu dikurangi total beli.</p>
+      <p class="hint" data-i18n="edit.hint">Unrealized &amp; % tidak diketik manual — keduanya dihitung dari harga pasar terkini dikali jumlah, lalu dikurangi total beli.</p>
 
       <div class="modal-actions edit-actions">
-        <button class="btn btn-danger" id="edit-delete" type="button"><i class="fa fa-trash"></i> Hapus</button>
+        <button class="btn btn-danger" id="edit-delete" type="button"><i class="fa fa-trash"></i> <span data-i18n="edit.delete">Hapus</span></button>
         <span class="spacer"></span>
-        <button class="btn" id="edit-cancel" type="button">Batal</button>
-        <button class="btn btn-primary" id="edit-save" type="button">Simpan Perubahan</button>
+        <button class="btn" id="edit-cancel" type="button" data-i18n="common.cancel">Batal</button>
+        <button class="btn btn-primary" id="edit-save" type="button" data-i18n="edit.save">Simpan Perubahan</button>
       </div>
     </div>
   </div>
@@ -205,17 +250,17 @@
   <div class="modal-backdrop" id="instrument-modal-backdrop" role="dialog" aria-modal="true" hidden>
     <div class="app-modal wide">
       <div class="modal-icon"><i class="fa-solid fa-layer-group"></i></div>
-      <div class="modal-title">Tambah Instrumen</div>
-      <div class="modal-message">Tambahkan aset baru ke portofolio. Ticker kosong berarti harga diisi manual.</div>
+      <div class="modal-title" data-i18n="instr.title">Tambah Instrumen</div>
+      <div class="modal-message" data-i18n="instr.sub">Tambahkan aset baru ke portofolio. Ticker kosong berarti harga diisi manual.</div>
       <div class="field-grid modal-grid">
-        <label class="field"><span>Kode aset</span><input id="asset-symbol" placeholder="cth: GOLD" /></label>
-        <label class="field"><span>Nama aset</span><input id="asset-name" placeholder="cth: Gold ETF" /></label>
-        <label class="field"><span>Unit</span><input id="asset-unit" placeholder="unit / gram / oz" /></label>
-        <label class="field"><span>Ticker harga (opsional)</span><input id="asset-yahoo" placeholder="cth: GLD / GC=F" /></label>
+        <label class="field"><span data-i18n="instr.code">Kode aset</span><input id="asset-symbol" placeholder="cth: GOLD" /></label>
+        <label class="field"><span data-i18n="instr.name">Nama aset</span><input id="asset-name" placeholder="cth: Gold ETF" /></label>
+        <label class="field"><span data-i18n="instr.unit">Unit</span><input id="asset-unit" placeholder="unit / gram / oz" /></label>
+        <label class="field"><span data-i18n="instr.ticker">Ticker harga (opsional)</span><input id="asset-yahoo" placeholder="cth: GLD / GC=F" /></label>
       </div>
       <div class="modal-actions">
-        <button class="btn" id="instrument-cancel" type="button">Batal</button>
-        <button class="btn btn-primary" id="instrument-save" type="button">Tambah Instrumen</button>
+        <button class="btn" id="instrument-cancel" type="button" data-i18n="common.cancel">Batal</button>
+        <button class="btn btn-primary" id="instrument-save" type="button" data-i18n="instr.add">Tambah Instrumen</button>
       </div>
     </div>
   </div>
@@ -224,29 +269,29 @@
   <div class="modal-backdrop" id="settings-modal-backdrop" role="dialog" aria-modal="true" hidden>
     <div class="app-modal wide">
       <div class="modal-icon"><i class="fa-solid fa-sliders"></i></div>
-      <div class="modal-title">Pengaturan Tampilan</div>
-      <div class="modal-message">Sesuaikan identitas family office Anda. Perubahan tersimpan ke akun.</div>
+      <div class="modal-title" data-i18n="set.title">Pengaturan Tampilan</div>
+      <div class="modal-message" data-i18n="set.sub">Sesuaikan identitas family office Anda. Perubahan tersimpan ke akun.</div>
 
       <div class="logo-editor">
         <div class="logo-preview brand-logo" id="settings-logo-preview"><span data-monogram>M</span></div>
         <div class="logo-editor-actions">
-          <label class="btn btn-sm" for="settings-logo-file"><i class="fa-solid fa-upload"></i> Unggah logo</label>
+          <label class="btn btn-sm" for="settings-logo-file"><i class="fa-solid fa-upload"></i> <span data-i18n="set.upload">Unggah logo</span></label>
           <input type="file" id="settings-logo-file" accept="image/*" hidden />
-          <button class="btn btn-sm btn-danger" id="settings-logo-reset" type="button">Hapus logo</button>
+          <button class="btn btn-sm btn-danger" id="settings-logo-reset" type="button" data-i18n="set.removeLogo">Hapus logo</button>
         </div>
       </div>
 
       <div class="field-grid modal-grid">
-        <label class="field"><span>Judul (header)</span><input id="set-title" placeholder="Meridian" /></label>
-        <label class="field"><span>Deskripsi (header)</span><input id="set-subtitle" placeholder="Private Wealth · Ledger DCA" /></label>
+        <label class="field"><span data-i18n="set.headTitle">Judul (header)</span><input id="set-title" placeholder="Meridian" /></label>
+        <label class="field"><span data-i18n="set.headDesc">Deskripsi (header)</span><input id="set-subtitle" placeholder="Private Wealth · Ledger DCA" /></label>
       </div>
-      <label class="field" style="margin-top:.85rem"><span>Label ringkasan</span><input id="set-eyebrow" placeholder="Ringkasan Portofolio" /></label>
-      <label class="field" style="margin-top:.85rem"><span>Judul utama</span><input id="set-pagetitle" placeholder="Akumulasi disiplin, dipantau dengan tenang." /></label>
-      <label class="field" style="margin-top:.85rem"><span>Deskripsi utama</span><textarea id="set-lede" rows="3" placeholder="Catat setiap pembelian rutin…"></textarea></label>
+      <label class="field" style="margin-top:.85rem"><span data-i18n="set.eyebrow">Label ringkasan</span><input id="set-eyebrow" placeholder="Ringkasan Portofolio" /></label>
+      <label class="field" style="margin-top:.85rem"><span data-i18n="set.pageTitle">Judul utama</span><input id="set-pagetitle" placeholder="Akumulasi disiplin, dipantau dengan tenang." /></label>
+      <label class="field" style="margin-top:.85rem"><span data-i18n="set.lede">Deskripsi utama</span><textarea id="set-lede" rows="3" placeholder="Catat setiap pembelian rutin…"></textarea></label>
 
       <div class="modal-actions">
-        <button class="btn" id="settings-cancel" type="button">Batal</button>
-        <button class="btn btn-primary" id="settings-save" type="button">Simpan</button>
+        <button class="btn" id="settings-cancel" type="button" data-i18n="common.cancel">Batal</button>
+        <button class="btn btn-primary" id="settings-save" type="button" data-i18n="set.save">Simpan</button>
       </div>
     </div>
   </div>
@@ -268,6 +313,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- App -->
-  <script type="module" src="js/app.js?v=10"></script>
+  <script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>
