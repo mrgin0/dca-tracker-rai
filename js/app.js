@@ -18,7 +18,7 @@ import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
 import { exportXLSX, exportBackupJSON } from './export.js?v=10';
 import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
 import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
-import { initClocks, renderClocks, renderRateChip, loadRate } from './clock.js?v=10';
+import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=10';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
   handleSaveNote, handleDeleteNote,
@@ -81,6 +81,7 @@ function handleToggleLang() {
   applyTheme(document.body.classList.contains('dark') ? 'dark' : 'light'); // label Dark/Light
   renderClocks();
   renderRateChip();
+  refreshMarquee();      // teks berubah panjang -> ukur ulang marquee
   renderAll();
   renderNotes();
   setPriceHint();        // applyI18n() menimpa hint; kembalikan stempel waktunya
@@ -563,9 +564,11 @@ function wireEvents() {
 
   $('currency-btn').addEventListener('click', handleToggleCurrency);
   $('lang-btn').addEventListener('click', handleToggleLang);
-  $('rate-chip').addEventListener('click', async () => {
-    await loadRate({ force: true });
-    if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+  initMarketStrip({
+    onRateRefresh: async () => {
+      await loadRate({ force: true });
+      if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+    },
   });
   $('note-add').addEventListener('click', handleAddNote);
 
