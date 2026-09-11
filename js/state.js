@@ -24,12 +24,6 @@ export const state = {
   chartRange: 'ALL',
   charts: { line: null, pie: null },
 
-  // --- form "Catat Transaksi" per instrumen (collapsed by default) ---
-  txFormOpen: {},       // symbol -> bool
-
-  // --- kalender pemantauan investasi bulanan ---
-  calendarYear: new Date().getFullYear(),
-
   // --- tampilan ---
   currency: restoreCurrency(),  // 'USD' | 'IDR' — hanya memengaruhi TAMPILAN
   lang: restoreLang(),          // 'id' | 'en'
