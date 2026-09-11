@@ -4,21 +4,15 @@
 //  for this browser session). No price history is stored.
 // ============================================================
 
-import { PRICES } from './firebase-config.js?v=12';
-import { state } from './state.js?v=12';
-import { safeId, toDisplayCurrency, toUSDFromDisplay } from './utils.js?v=12';
-
-// Harga kanonik selalu disimpan dalam USD di sini, terlepas dari mata uang
-// tampilan yang sedang aktif. Input di layar hanyalah representasi (USD atau
-// IDR) dari nilai kanonik ini — konversi terjadi di titik baca/tulis.
-const priceCacheUSD = {};
+import { PRICES } from './firebase-config.js?v=10';
+import { state } from './state.js?v=10';
+import { safeId } from './utils.js?v=10';
 
 function priceKey(symbol) {
   const uid = state.user?.uid || 'guest';
   return `meridian-price-${uid}-${symbol}`;
 }
 
-/** String mentah tersimpan (selalu USD kanonik). */
 export function getSavedPrice(symbol) {
   try {
     // Harga yang sempat tersimpan sebelum login (key "guest") ikut dipakai
@@ -29,12 +23,6 @@ export function getSavedPrice(symbol) {
   } catch { return ''; }
 }
 
-/** Angka USD kanonik tersimpan (null kalau kosong/tidak valid). */
-export function getSavedPriceUSD(symbol) {
-  const raw = parseFloat(getSavedPrice(symbol));
-  return Number.isFinite(raw) && raw > 0 ? raw : null;
-}
-
 export function savePriceInput(symbol, value) {
   try { localStorage.setItem(priceKey(symbol), value || ''); } catch {}
 }
@@ -42,43 +30,27 @@ export function savePriceInput(symbol, value) {
 export function savePriceInputs() {
   state.assets.forEach((a) => {
     const el = document.getElementById('price-' + safeId(a.symbol));
-    if (el) {
-      const usd = toUSDFromDisplay(parseFloat(el.value));
-      setPriceUSD(a.symbol, usd);
-      savePriceInput(a.symbol, Number.isFinite(usd) && usd > 0 ? String(usd) : '');
-    }
+    if (el) savePriceInput(a.symbol, el.value);
   });
 }
 
-/** Simpan/lupakan harga kanonik (USD) di cache dalam-memori untuk simbol ini. */
-export function setPriceUSD(symbol, usdValue) {
-  const n = Number(usdValue);
-  if (Number.isFinite(n) && n > 0) priceCacheUSD[symbol] = n;
-  else delete priceCacheUSD[symbol];
-}
-
-/** Harga USD kanonik untuk sebuah simbol (dipakai semua perhitungan portofolio). */
+/** Current price for a symbol, read from its input. Returns null if empty/invalid. */
 export function getPrice(symbol) {
-  const v = priceCacheUSD[symbol];
-  return Number.isFinite(v) && v > 0 ? v : null;
+  const el = document.getElementById('price-' + safeId(symbol));
+  if (!el) return null;
+  const v = parseFloat(el.value);
+  return !Number.isFinite(v) || v <= 0 ? null : v;
 }
 
-/** Angka yang seharusnya tampil di kotak input, sesuai mata uang aktif saat ini. */
-export function displayPriceValue(symbol) {
-  const usd = getPrice(symbol);
-  if (usd === null) return '';
-  const shown = toDisplayCurrency(usd);
-  return state.currency === 'IDR' ? String(Math.round(shown)) : String(Number(shown.toFixed(shown >= 1000 ? 2 : 4)));
-}
-
-/** Tulis satu harga (selalu dalam USD, mis. dari fetch realtime) ke cache + input. Return true kalau berhasil. */
+/** Tulis satu harga ke input + localStorage. Return true kalau berhasil. */
 export function applyPrice(symbol, price) {
+  const el = document.getElementById('price-' + safeId(symbol));
+  if (!el) return false;
   const n = Number(price);
   if (!Number.isFinite(n) || n <= 0) return false;
-  setPriceUSD(symbol, n);
-  savePriceInput(symbol, String(n));
-  const el = document.getElementById('price-' + safeId(symbol));
-  if (el) el.value = displayPriceValue(symbol);
+  const val = n.toFixed(n >= 1000 ? 2 : 4);
+  el.value = val;
+  savePriceInput(symbol, val);
   return true;
 }
 
