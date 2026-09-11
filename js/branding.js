@@ -3,7 +3,7 @@
 //  Cached in localStorage (instant), synced to Firestore.
 // ============================================================
 
-import { state } from './state.js?v=10';
+import { state } from './state.js?v=12';
 
 export const DEFAULT_BRANDING = {
   title: 'Meridian',
