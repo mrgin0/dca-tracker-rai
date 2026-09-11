@@ -6,12 +6,12 @@
 <meta name="description" content="Family office DCA tracker — catat pembelian rutin, pantau unrealized gain, alokasi aset." />
 <title>未来 · Untuk yang Akan Datang</title>
 
-<link rel="icon" href="favicon.svg?v=12" type="image/svg+xml" />
+<link rel="icon" href="favicon.svg?v=11" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link rel="stylesheet" href="css/styles.css?v=12" />
+<link rel="stylesheet" href="css/styles.css?v=11" />
 </head>
 <body class="logged-out">
 
@@ -186,22 +186,6 @@
       </div>
     </section>
 
-    <section class="panel calendar-panel">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow" data-i18n="cal.eyebrow">Pemantauan</p>
-          <h2 class="panel-title" data-i18n="cal.title">Kalender Investasi Bulanan</h2>
-          <p class="hint" style="margin-top:.35rem" data-i18n="cal.hint">Kotak hijau = sudah invest bulan itu, abu-abu = belum, ungu = sudah invest 2× atau lebih dalam bulan yang sama.</p>
-        </div>
-        <div class="cal-year-nav">
-          <button type="button" class="btn btn-sm btn-quiet" data-action="cal-prev-year" aria-label="Tahun sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
-          <span class="cal-year" id="cal-year-label">2026</span>
-          <button type="button" class="btn btn-sm btn-quiet" data-action="cal-next-year" aria-label="Tahun berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-      </div>
-      <div id="investment-calendar"></div>
-    </section>
-
     <section class="panel notes-panel">
       <div class="panel-head">
         <div>
@@ -249,7 +233,7 @@
         <label class="field"><span data-i18n="edit.date">Tanggal pembelian</span><input type="date" id="e-tanggal" /></label>
         <label class="field"><span id="e-harga-label">Harga beli ($)</span><input type="number" id="e-harga" min="0" step="0.01" inputmode="decimal" placeholder="cth: 480.50" /></label>
         <label class="field"><span><span data-i18n="edit.qty">Jumlah / qty</span> (<span id="e-unit-label">unit</span>)</span><input type="number" id="e-unit" min="0" step="any" inputmode="decimal" placeholder="cth: 1.5" /></label>
-        <label class="field"><span id="e-total-label">Total beli ($)</span><input type="number" id="e-total" min="0" step="0.01" inputmode="decimal" placeholder="otomatis harga × qty" /></label>
+        <label class="field"><span data-i18n="edit.total">Total beli ($)</span><input type="number" id="e-total" min="0" step="0.01" inputmode="decimal" placeholder="otomatis harga × qty" /></label>
       </div>
 
       <div class="edit-preview">
@@ -335,6 +319,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- App -->
-  <script type="module" src="js/app.js?v=12"></script>
+  <script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>
