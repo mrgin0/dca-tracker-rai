@@ -2,12 +2,12 @@
 //  UI — DOM rendering (no event wiring; app.js delegates events)
 // ============================================================
 
-import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf, allSymbols } from './state.js?v=12';
-import { getPrice, getSavedPriceUSD, setPriceUSD, displayPriceValue } from './prices.js?v=12';
-import { calcAsset, calcTotals, num } from './calc.js?v=12';
-import { renderCharts } from './charts.js?v=12';
-import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml, currencySymbol } from './utils.js?v=12';
-import { t } from './i18n.js?v=12';
+import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf, allSymbols } from './state.js?v=13';
+import { getPrice, getSavedPriceUSD, setPriceUSD, displayPriceValue } from './prices.js?v=13';
+import { calcAsset, calcTotals, num } from './calc.js?v=13';
+import { renderCharts } from './charts.js?v=13';
+import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml, currencySymbol } from './utils.js?v=13';
+import { t } from './i18n.js?v=13';
 
 const $ = (id) => document.getElementById(id);
 
@@ -204,6 +204,7 @@ export function renderTabContent() {
 
 // ---------- KALENDER PEMANTAUAN INVESTASI BULANAN ----------
 const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const CAL_COL_WIDTH = 30; // px per kolom instrumen — kotak dibuat kecil ala GitHub, bukan melebar penuh
 
 export function renderInvestmentCalendar() {
   const wrap = $('investment-calendar');
@@ -234,7 +235,7 @@ export function renderInvestmentCalendar() {
     return `
       <div class="cal-row">
         <div class="cal-row-label">${escapeHtml(t('cal.' + mk)).toUpperCase()}</div>
-        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},1fr)">${cells}</div>
+        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},${CAL_COL_WIDTH}px)">${cells}</div>
       </div>`;
   }).join('');
 
@@ -242,7 +243,7 @@ export function renderInvestmentCalendar() {
     <div class="cal-table">
       <div class="cal-row cal-head-row">
         <div class="cal-row-label"></div>
-        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},1fr)">${headCells}</div>
+        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},${CAL_COL_WIDTH}px)">${headCells}</div>
       </div>
       ${rows}
     </div>
