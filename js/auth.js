@@ -8,7 +8,7 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { auth } from './firebase-config.js?v=12';
+import { auth } from './firebase-config.js?v=10';
 
 export function signIn(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
