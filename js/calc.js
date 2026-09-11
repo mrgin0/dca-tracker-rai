@@ -2,8 +2,8 @@
 //  CALC — portfolio math
 // ============================================================
 
-import { state, allSymbols, entriesOf } from './state.js?v=10';
-import { getPrice } from './prices.js?v=10';
+import { state, allSymbols, entriesOf } from './state.js?v=12';
+import { getPrice } from './prices.js?v=12';
 
 /** Angka aman: apa pun yang bukan angka valid dianggap 0 (bukan NaN menular). */
 export function num(v) {
