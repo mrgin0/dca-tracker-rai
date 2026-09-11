@@ -7,7 +7,7 @@
 //    data-i18n-title="key"  -> title + aria-label
 // ============================================================
 
-import { state, saveLang } from './state.js?v=12';
+import { state, saveLang } from './state.js?v=10';
 
 const STRINGS = {
   id: {
@@ -33,7 +33,7 @@ const STRINGS = {
     'prices.eyebrow': 'Valuasi Pasar', 'prices.title': 'Harga terkini per instrumen',
     'prices.fetch': 'Ambil Data',
     'prices.hint': 'Harga tersimpan hanya di sesi ini, tidak disimpan sebagai histori. Klik Ambil Data untuk memuat harga realtime.',
-    'prices.usdOnly': 'Harga di atas mengikuti tombol mata uang di header (USD/IDR) — ketik langsung dalam mata uang yang aktif.',
+    'prices.usdOnly': 'Harga pasar selalu dalam USD; nilai portofolio ditampilkan dalam IDR memakai kurs di atas.',
     'prices.loading': 'Mengambil harga realtime…',
     'prices.updated': 'Harga diperbarui: {at}',
     'prices.noValid': 'Tidak ada harga valid dari ticker yang dipakai.',
@@ -43,8 +43,8 @@ const STRINGS = {
     'tabs.instrument': 'Instrumen',
 
     'form.eyebrow': 'Catat Transaksi', 'form.date': 'Tanggal pembelian',
-    'form.price': 'Harga beli / {unit} ({cur})', 'form.qty': 'Jumlah / qty', 'form.total': 'Total beli ({cur})',
-    'form.pricePh': 'cth: 480.50', 'form.pricePhIdr': 'cth: 7500000', 'form.qtyPh': 'cth: 1.5', 'form.totalPh': 'otomatis harga × qty',
+    'form.price': 'Harga beli / {unit} ($)', 'form.qty': 'Jumlah / qty', 'form.total': 'Total beli ($)',
+    'form.pricePh': 'cth: 480.50', 'form.qtyPh': 'cth: 1.5', 'form.totalPh': 'otomatis harga × qty',
     'form.add': 'Tambah Pembelian', 'form.removeInstrument': 'Hapus Instrumen',
 
     'metric.units': 'Total Unit', 'metric.avg': 'Avg Harga Beli', 'metric.invested': 'Total Investasi',
@@ -71,15 +71,6 @@ const STRINGS = {
     'pie.hint': 'Memakai nilai pasar terkini; aset tanpa harga dihitung dari harga pokok.',
     'pie.empty': 'Belum ada data investasi.', 'pie.costFlag': 'pokok',
 
-    'cal.eyebrow': 'Pemantauan', 'cal.title': 'Kalender Investasi Bulanan',
-    'cal.hint': 'Kotak hijau = sudah invest bulan itu, abu-abu = belum, ungu = sudah invest 2× atau lebih dalam bulan yang sama.',
-    'cal.empty': 'Belum ada instrumen untuk dipantau.',
-    'cal.legendNone': 'Belum invest', 'cal.legendOnce': 'Sudah invest', 'cal.legendTwice': '2× atau lebih',
-    'cal.txSuffix': 'transaksi',
-    'cal.jan': 'Januari', 'cal.feb': 'Februari', 'cal.mar': 'Maret', 'cal.apr': 'April',
-    'cal.may': 'Mei', 'cal.jun': 'Juni', 'cal.jul': 'Juli', 'cal.aug': 'Agustus',
-    'cal.sep': 'September', 'cal.oct': 'Oktober', 'cal.nov': 'November', 'cal.dec': 'Desember',
-
     'notes.eyebrow': 'Jurnal', 'notes.title': 'Catatan portofolio',
     'notes.placeholder': 'Tulis catatan: alasan beli, target, rencana rebalancing…',
     'notes.add': 'Tambah Catatan', 'notes.empty': 'Belum ada catatan. Tulis sesuatu di atas.',
@@ -103,8 +94,8 @@ const STRINGS = {
 
     'edit.title': 'Ubah Transaksi',
     'edit.sub': '{name} · ubah lalu simpan. Unrealized & % dihitung ulang otomatis.',
-    'edit.date': 'Tanggal pembelian', 'edit.price': 'Harga beli ({cur})', 'edit.qty': 'Jumlah / qty',
-    'edit.total': 'Total beli ({cur})', 'edit.now': 'Nilai sekarang', 'edit.gain': 'Unrealized', 'edit.pct': '%',
+    'edit.date': 'Tanggal pembelian', 'edit.price': 'Harga beli ($)', 'edit.qty': 'Jumlah / qty',
+    'edit.total': 'Total beli ($)', 'edit.now': 'Nilai sekarang', 'edit.gain': 'Unrealized', 'edit.pct': '%',
     'edit.hint': 'Unrealized & % tidak diketik manual — keduanya dihitung dari harga pasar terkini dikali jumlah, lalu dikurangi total beli.',
     'edit.delete': 'Hapus', 'edit.save': 'Simpan Perubahan',
     'edit.noPrice': 'harga pasar kosong',
@@ -124,7 +115,6 @@ const STRINGS = {
     'common.fillFields': 'Lengkapi semua field dengan angka lebih besar dari 0.',
     'common.loading': 'Memuat data dari Firebase…',
     'common.confirmDelTx': 'Hapus transaksi ini?', 'common.confirmDelTxTitle': 'Hapus transaksi?',
-    'common.rateNotReady': 'Kurs USD→IDR belum termuat. Tunggu sebentar lalu coba lagi.',
   },
 
   en: {
@@ -150,7 +140,7 @@ const STRINGS = {
     'prices.eyebrow': 'Market Valuation', 'prices.title': 'Latest price per instrument',
     'prices.fetch': 'Fetch Data',
     'prices.hint': 'Prices live in this session only and are never stored as history. Click Fetch Data to load live quotes.',
-    'prices.usdOnly': 'These prices follow the currency toggle in the header (USD/IDR) — type directly in whichever currency is active.',
+    'prices.usdOnly': 'Market prices are always in USD; portfolio values are shown in IDR using the rate above.',
     'prices.loading': 'Fetching live prices…',
     'prices.updated': 'Prices updated: {at}',
     'prices.noValid': 'No valid price returned for the tickers used.',
@@ -160,8 +150,8 @@ const STRINGS = {
     'tabs.instrument': 'Instrument',
 
     'form.eyebrow': 'Record Transaction', 'form.date': 'Purchase date',
-    'form.price': 'Buy price / {unit} ({cur})', 'form.qty': 'Quantity', 'form.total': 'Total cost ({cur})',
-    'form.pricePh': 'e.g. 480.50', 'form.pricePhIdr': 'e.g. 7500000', 'form.qtyPh': 'e.g. 1.5', 'form.totalPh': 'auto: price × qty',
+    'form.price': 'Buy price / {unit} ($)', 'form.qty': 'Quantity', 'form.total': 'Total cost ($)',
+    'form.pricePh': 'e.g. 480.50', 'form.qtyPh': 'e.g. 1.5', 'form.totalPh': 'auto: price × qty',
     'form.add': 'Add Purchase', 'form.removeInstrument': 'Delete Instrument',
 
     'metric.units': 'Total Units', 'metric.avg': 'Avg Buy Price', 'metric.invested': 'Total Invested',
@@ -188,15 +178,6 @@ const STRINGS = {
     'pie.hint': 'Uses latest market value; assets without a price fall back to cost basis.',
     'pie.empty': 'No investment data yet.', 'pie.costFlag': 'cost',
 
-    'cal.eyebrow': 'Monitoring', 'cal.title': 'Monthly Investment Calendar',
-    'cal.hint': 'Green square = invested that month, grey = not yet, purple = invested 2+ times in the same month.',
-    'cal.empty': 'No instruments to monitor yet.',
-    'cal.legendNone': 'Not invested', 'cal.legendOnce': 'Invested', 'cal.legendTwice': '2× or more',
-    'cal.txSuffix': 'transaction(s)',
-    'cal.jan': 'January', 'cal.feb': 'February', 'cal.mar': 'March', 'cal.apr': 'April',
-    'cal.may': 'May', 'cal.jun': 'June', 'cal.jul': 'July', 'cal.aug': 'August',
-    'cal.sep': 'September', 'cal.oct': 'October', 'cal.nov': 'November', 'cal.dec': 'December',
-
     'notes.eyebrow': 'Journal', 'notes.title': 'Portfolio notes',
     'notes.placeholder': 'Write a note: why you bought, targets, rebalancing plan…',
     'notes.add': 'Add Note', 'notes.empty': 'No notes yet. Write something above.',
@@ -220,8 +201,8 @@ const STRINGS = {
 
     'edit.title': 'Edit Transaction',
     'edit.sub': '{name} · change then save. Unrealized & % are recalculated automatically.',
-    'edit.date': 'Purchase date', 'edit.price': 'Buy price ({cur})', 'edit.qty': 'Quantity',
-    'edit.total': 'Total cost ({cur})', 'edit.now': 'Current value', 'edit.gain': 'Unrealized', 'edit.pct': '%',
+    'edit.date': 'Purchase date', 'edit.price': 'Buy price ($)', 'edit.qty': 'Quantity',
+    'edit.total': 'Total cost ($)', 'edit.now': 'Current value', 'edit.gain': 'Unrealized', 'edit.pct': '%',
     'edit.hint': 'Unrealized & % are never typed by hand — both come from market price × quantity, minus total cost.',
     'edit.delete': 'Delete', 'edit.save': 'Save Changes',
     'edit.noPrice': 'market price empty',
@@ -241,7 +222,6 @@ const STRINGS = {
     'common.fillFields': 'Fill every field with a number greater than 0.',
     'common.loading': 'Loading data from Firebase…',
     'common.confirmDelTx': 'Delete this transaction?', 'common.confirmDelTxTitle': 'Delete transaction?',
-    'common.rateNotReady': 'USD→IDR exchange rate is not loaded yet. Wait a moment and try again.',
   },
 };
 
