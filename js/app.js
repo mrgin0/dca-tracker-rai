@@ -2,27 +2,27 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf, saveCurrency } from './state.js?v=13';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA, fmt, fmtPct, toDisplayCurrency, toUSDFromDisplay, currencySymbol, numForInput } from './utils.js?v=13';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=13';
-import { auth } from './firebase-config.js?v=13';
+import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf, saveCurrency } from './state.js?v=14';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA, fmt, fmtPct, toDisplayCurrency, toUSDFromDisplay, currencySymbol, numForInput } from './utils.js?v=14';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=14';
+import { auth } from './firebase-config.js?v=14';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
   getLastPriceSnapshot, saveLastPriceSnapshot,
-} from './store.js?v=13';
-import { fetchMarketPrices, savePriceInput, applyPrice, getPrice, setPriceUSD } from './prices.js?v=13';
-import { renderAll, renderTabContent, renderInvestmentCalendar, setLoading } from './ui.js?v=13';
-import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=13';
-import { exportXLSX, exportBackupJSON } from './export.js?v=13';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=13';
-import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=13';
-import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=13';
+} from './store.js?v=14';
+import { fetchMarketPrices, savePriceInput, applyPrice, getPrice, setPriceUSD } from './prices.js?v=14';
+import { renderAll, renderTabContent, renderInvestmentCalendar, setLoading } from './ui.js?v=14';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=14';
+import { exportXLSX, exportBackupJSON } from './export.js?v=14';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=14';
+import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=14';
+import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=14';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
   handleSaveNote, handleDeleteNote,
-} from './notes.js?v=13';
+} from './notes.js?v=14';
 
 const $ = (id) => document.getElementById(id);
 
@@ -61,12 +61,29 @@ function applyCurrencyUI() {
 }
 
 async function handleToggleCurrency() {
-  state.currency = state.currency === 'USD' ? 'IDR' : 'USD';
+  const target = state.currency === 'USD' ? 'IDR' : 'USD';
+
+  // PENTING: kalau mau pindah ke IDR, pastikan dulu kursnya benar-benar ada
+  // SEBELUM state.currency diubah/disimpan. Kalau tidak, aplikasi bisa
+  // "tersangkut" dengan currency='IDR' tapi rate=null — akibatnya semua
+  // label & angka tetap kelihatan USD (rate belum ada) DAN setiap coba
+  // simpan transaksi selalu ditolak oleh needsRateFirst(), padahal
+  // tombolnya sudah menyala IDR. Ini akar dari banyak keluhan sebelumnya.
+  if (target === 'IDR' && !state.rate) {
+    const btn = $('currency-btn');
+    btn?.classList.add('is-loading');
+    const rate = await loadRate();
+    btn?.classList.remove('is-loading');
+    if (!rate) {
+      showAlert(t('common.rateFailToggle'));
+      return; // batal pindah ke IDR, tetap di USD supaya tidak "nyangkut"
+    }
+  }
+
+  state.currency = target;
   saveCurrency();
   applyCurrencyUI();
-  // Butuh kurs sebelum bisa menampilkan rupiah.
-  if (state.currency === 'IDR' && !state.rate) await loadRate();
-  renderAll();          // termasuk baris harga + catatan "harga tetap USD"
+  renderAll();          // termasuk baris harga + label form ($/Rp)
   renderCharts();
 }
 
@@ -593,6 +610,22 @@ function wireEvents() {
   });
   $('note-add').addEventListener('click', handleAddNote);
 
+  // Kalender: langsung lompat ke tahun yang diketik (bukan cuma geser satu-satu).
+  const calYearInput = $('cal-year-label');
+  if (calYearInput) {
+    const jumpToTypedYear = () => {
+      const y = parseInt(calYearInput.value, 10);
+      if (Number.isFinite(y) && y >= 1900 && y <= 2200) {
+        state.calendarYear = y;
+        renderInvestmentCalendar();
+      } else {
+        calYearInput.value = String(state.calendarYear || new Date().getFullYear());
+      }
+    };
+    calYearInput.addEventListener('change', jumpToTypedYear);
+    calYearInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); calYearInput.blur(); } });
+  }
+
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
   $('backup-json-btn').addEventListener('click', exportBackupJSON);
@@ -747,7 +780,17 @@ function boot() {
     // Kurs dimuat di latar; kalau mode IDR aktif, tampilan disegarkan setelahnya.
     loadRate().then(() => {
       renderRateChip();
-      if (state.currency === 'IDR') { renderAll(); renderCharts(); }
+      if (state.currency === 'IDR' && state.rate) {
+        renderAll(); renderCharts();
+      } else if (state.currency === 'IDR' && !state.rate) {
+        // Self-healing: sesi lama yang sempat "tersangkut" di IDR tanpa kurs
+        // (dari sebelum perbaikan ini) dikembalikan ke USD otomatis, supaya
+        // tidak diam-diam menolak semua transaksi baru.
+        state.currency = 'USD';
+        saveCurrency();
+        applyCurrencyUI();
+        renderAll(); renderCharts();
+      }
     });
 
     // onAuthStateChanged selalu dipanggil sekali di awal dengan user saat ini,
