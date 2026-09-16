@@ -7,7 +7,7 @@
 //    data-i18n-title="key"  -> title + aria-label
 // ============================================================
 
-import { state, saveLang } from './state.js?v=13';
+import { state, saveLang } from './state.js?v=14';
 
 const STRINGS = {
   id: {
@@ -125,6 +125,7 @@ const STRINGS = {
     'common.loading': 'Memuat data dari Firebase…',
     'common.confirmDelTx': 'Hapus transaksi ini?', 'common.confirmDelTxTitle': 'Hapus transaksi?',
     'common.rateNotReady': 'Kurs USD→IDR belum termuat. Tunggu sebentar lalu coba lagi.',
+    'common.rateFailToggle': 'Gagal mengambil kurs USD→IDR (cek koneksi internet). Tetap memakai USD dulu — coba tombol IDR lagi sebentar lagi.',
   },
 
   en: {
@@ -242,6 +243,7 @@ const STRINGS = {
     'common.loading': 'Loading data from Firebase…',
     'common.confirmDelTx': 'Delete this transaction?', 'common.confirmDelTxTitle': 'Delete transaction?',
     'common.rateNotReady': 'USD→IDR exchange rate is not loaded yet. Wait a moment and try again.',
+    'common.rateFailToggle': 'Could not fetch the USD→IDR rate (check your internet connection). Staying on USD for now — try the IDR button again shortly.',
   },
 };
 
