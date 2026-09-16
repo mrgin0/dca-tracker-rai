@@ -6,12 +6,12 @@
 <meta name="description" content="Family office DCA tracker — catat pembelian rutin, pantau unrealized gain, alokasi aset." />
 <title>未来 · Untuk yang Akan Datang</title>
 
-<link rel="icon" href="favicon.svg?v=13" type="image/svg+xml" />
+<link rel="icon" href="favicon.svg?v=14" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link rel="stylesheet" href="css/styles.css?v=13" />
+<link rel="stylesheet" href="css/styles.css?v=14" />
 </head>
 <body class="logged-out">
 
@@ -195,7 +195,7 @@
         </div>
         <div class="cal-year-nav">
           <button type="button" class="btn btn-sm btn-quiet" data-action="cal-prev-year" aria-label="Tahun sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
-          <span class="cal-year" id="cal-year-label">2026</span>
+          <input type="number" class="cal-year-input" id="cal-year-label" value="2026" inputmode="numeric" step="1" aria-label="Pilih tahun" />
           <button type="button" class="btn btn-sm btn-quiet" data-action="cal-next-year" aria-label="Tahun berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
       </div>
@@ -335,6 +335,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <!-- App -->
-  <script type="module" src="js/app.js?v=13"></script>
+  <script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>
