@@ -2,8 +2,8 @@
 //  UTILITIES — formatters, helpers, modal, theme
 // ============================================================
 
-import { state } from './state.js?v=10';
-import { t, locale } from './i18n.js?v=10';
+import { state } from './state.js?v=13';
+import { t, locale } from './i18n.js?v=13';
 
 /**
  * Format uang. Semua data internal disimpan dalam USD; kalau mode tampilan
@@ -29,6 +29,36 @@ export function fmtCompact(n) {
 /** Simbol mata uang tampilan yang sedang aktif. */
 export function currencyCode() {
   return state.currency === 'IDR' && state.rate ? 'IDR' : 'USD';
+}
+
+/** Tanda mata uang pendek untuk label input ("$" / "Rp"). */
+export function currencySymbol() {
+  return state.currency === 'IDR' && state.rate ? 'Rp' : '$';
+}
+
+/**
+ * Konversi angka kanonik (selalu USD) menjadi angka yang ditampilkan/diketik
+ * sesuai mata uang tampilan aktif. Dipakai supaya input harga/total bisa
+ * langsung diisi dalam Rupiah saat mode IDR aktif.
+ */
+export function toDisplayCurrency(usdValue) {
+  const n = Number(usdValue);
+  if (!Number.isFinite(n)) return usdValue;
+  return (state.currency === 'IDR' && state.rate) ? n * state.rate : n;
+}
+
+/** Kebalikan dari toDisplayCurrency: angka yang diketik user -> USD kanonik. */
+export function toUSDFromDisplay(displayValue) {
+  const n = Number(displayValue);
+  if (!Number.isFinite(n)) return displayValue;
+  return (state.currency === 'IDR' && state.rate) ? n / state.rate : n;
+}
+
+/** Format angka polos untuk mengisi ulang sebuah <input type=number>. */
+export function numForInput(n, dec) {
+  if (n === null || n === undefined || !Number.isFinite(Number(n))) return '';
+  const d = dec ?? (state.currency === 'IDR' ? 0 : 2);
+  return Number(Number(n).toFixed(d)).toString();
 }
 
 export function fmtN(n, dec = 6) {
