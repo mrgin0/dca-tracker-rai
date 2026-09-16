@@ -2,12 +2,12 @@
 //  UI — DOM rendering (no event wiring; app.js delegates events)
 // ============================================================
 
-import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf, allSymbols } from './state.js?v=13';
-import { getPrice, getSavedPriceUSD, setPriceUSD, displayPriceValue } from './prices.js?v=13';
-import { calcAsset, calcTotals, num } from './calc.js?v=13';
-import { renderCharts } from './charts.js?v=13';
-import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml, currencySymbol } from './utils.js?v=13';
-import { t } from './i18n.js?v=13';
+import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf, allSymbols } from './state.js?v=14';
+import { getPrice, getSavedPriceUSD, setPriceUSD, displayPriceValue } from './prices.js?v=14';
+import { calcAsset, calcTotals, num } from './calc.js?v=14';
+import { renderCharts } from './charts.js?v=14';
+import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml, currencySymbol } from './utils.js?v=14';
+import { t } from './i18n.js?v=14';
 
 const $ = (id) => document.getElementById(id);
 
@@ -172,7 +172,10 @@ export function renderTabContent() {
   const isIdr = cur === 'Rp';
   const pricePh = isIdr ? t('form.pricePhIdr') : t('form.pricePh');
   const totalStep = isIdr ? '1' : '0.01';
-  const formOpen = !!state.txFormOpen[a.symbol];
+  // Terbuka secara default (supaya tombol "Tambah Pembelian" selalu langsung
+  // terlihat di semua instrumen) — hanya tertutup kalau user sendiri yang
+  // pernah menutupnya lewat klik header.
+  const formOpen = state.txFormOpen[a.symbol] !== false;
 
   $('tab-content').innerHTML = `
     <div class="panel">
@@ -210,8 +213,9 @@ export function renderInvestmentCalendar() {
   const wrap = $('investment-calendar');
   if (!wrap) return;
   const year = state.calendarYear || new Date().getFullYear();
-  const yearLabel = $('cal-year-label');
-  if (yearLabel) yearLabel.textContent = String(year);
+  const yearInput = $('cal-year-label');
+  // Jangan timpa nilai kalau elemen sedang difokus (user sedang mengetik tahun).
+  if (yearInput && document.activeElement !== yearInput) yearInput.value = String(year);
 
   const symbols = allSymbols();
   if (symbols.length === 0) {
