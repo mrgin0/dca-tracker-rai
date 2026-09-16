@@ -72,6 +72,10 @@ const STRINGS = {
     'pie.empty': 'Belum ada data investasi.', 'pie.costFlag': 'pokok',
 
     'notes.eyebrow': 'Jurnal', 'notes.title': 'Catatan portofolio',
+    'calendar.eyebrow': 'Pemantauan', 'calendar.title': 'Kalender Investasi Bulanan',
+    'calendar.hint': 'Kotak hijau = sudah invest bulan itu, abu-abu = belum, ungu = sudah invest 2× atau lebih dalam bulan yang sama.',
+    'calendar.notInvested': 'Belum invest', 'calendar.invested': 'Sudah invest', 'calendar.multi': '2× atau lebih',
+    'calendar.previous': 'Tahun sebelumnya', 'calendar.next': 'Tahun berikutnya', 'calendar.yearNav': 'Navigasi tahun',
     'notes.placeholder': 'Tulis catatan: alasan beli, target, rencana rebalancing…',
     'notes.add': 'Tambah Catatan', 'notes.empty': 'Belum ada catatan. Tulis sesuatu di atas.',
     'notes.edit': 'Ubah catatan', 'notes.delete': 'Hapus catatan',
@@ -179,6 +183,10 @@ const STRINGS = {
     'pie.empty': 'No investment data yet.', 'pie.costFlag': 'cost',
 
     'notes.eyebrow': 'Journal', 'notes.title': 'Portfolio notes',
+    'calendar.eyebrow': 'Monitoring', 'calendar.title': 'Monthly Investment Calendar',
+    'calendar.hint': 'Green = invested that month, gray = not invested, purple = invested 2× or more in the same month.',
+    'calendar.notInvested': 'Not invested', 'calendar.invested': 'Invested', 'calendar.multi': '2× or more',
+    'calendar.previous': 'Previous year', 'calendar.next': 'Next year', 'calendar.yearNav': 'Year navigation',
     'notes.placeholder': 'Write a note: why you bought, targets, rebalancing plan…',
     'notes.add': 'Add Note', 'notes.empty': 'No notes yet. Write something above.',
     'notes.edit': 'Edit note', 'notes.delete': 'Delete note',
