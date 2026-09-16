@@ -2,10 +2,10 @@
 //  EXPORT — transactions + allocation to .xlsx
 // ============================================================
 
-import { state, allSymbols, entriesOf, assetOf } from './state.js?v=13';
-import { getPrice } from './prices.js?v=13';
-import { calcAsset, num } from './calc.js?v=13';
-import { showAlert, todayISO } from './utils.js?v=13';
+import { state, allSymbols, entriesOf, assetOf } from './state.js?v=10';
+import { getPrice } from './prices.js?v=10';
+import { calcAsset, num } from './calc.js?v=10';
+import { showAlert, todayISO } from './utils.js?v=10';
 
 export function exportXLSX() {
   const rows = [];
@@ -73,7 +73,6 @@ export function exportBackupJSON() {
       symbol: a.symbol, name: a.name, unit: a.unit, yahoo: a.yahoo || '', isDefault: !!a.isDefault,
     })),
     transactions: state.data,
-    notes: state.notes || [],
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
