@@ -799,3 +799,69 @@ body.modal-open { overflow: hidden; }
   .note-composer .btn { align-self: stretch; justify-content: center; }
   .note-foot { align-items: flex-start; }
 }
+
+/* ============================================================
+   INVESTMENT CALENDAR
+   ============================================================ */
+.investment-calendar-panel { overflow: hidden; }
+.calendar-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.05rem;
+}
+.calendar-hint {
+  font-size: 11px; color: var(--muted-2); margin-top: .35rem; max-width: 760px;
+}
+.calendar-year-nav { display: flex; align-items: center; gap: .45rem; flex: none; }
+.calendar-nav-btn {
+  width: 31px; height: 31px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-strong); border-radius: 7px;
+  background: var(--surface); color: var(--text); cursor: pointer;
+  transition: background .16s ease, border-color .16s ease;
+}
+.calendar-nav-btn:hover { background: var(--surface-2); border-color: var(--champagne); }
+.calendar-nav-btn i { font-size: 10px; }
+.calendar-year {
+  min-width: 48px; text-align: center;
+  font-family: var(--serif); font-size: 16px; font-weight: 600;
+}
+.calendar-scroll { overflow-x: auto; scrollbar-width: thin; padding-bottom: .15rem; }
+.calendar-grid {
+  --calendar-month-width: 82px;
+  display: grid;
+  grid-template-columns: var(--calendar-month-width) repeat(var(--calendar-assets), 26px);
+  column-gap: 2px; row-gap: 0;
+  width: max-content; min-width: calc(var(--calendar-month-width) + (var(--calendar-assets) * 26px));
+  align-items: center;
+}
+.calendar-corner { height: 20px; }
+.calendar-asset {
+  height: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 8.5px; font-weight: 700; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.calendar-month {
+  height: 17px; display: flex; align-items: center;
+  font-size: 9.5px; font-weight: 600; color: var(--ink);
+  text-transform: uppercase; white-space: nowrap;
+}
+.calendar-cell {
+  width: 11px; height: 11px; justify-self: center;
+  display: block; border-radius: 2px;
+  border: 1px solid var(--line-strong); background: var(--line);
+}
+.calendar-cell.invested { background: #67C45E; border-color: #58AF50; }
+.calendar-cell.multi { background: #8C5BD6; border-color: #7746C2; }
+.calendar-legend {
+  display: flex; align-items: center; gap: 1.15rem;
+  border-top: 1px solid var(--line); margin-top: 1rem; padding-top: .75rem;
+  font-size: 10px; color: var(--muted-2); flex-wrap: wrap;
+}
+.calendar-legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.calendar-legend .calendar-cell { width: 10px; height: 10px; flex: none; }
+
+@media (max-width: 560px) {
+  .calendar-head { flex-direction: column; }
+  .calendar-year-nav { align-self: flex-end; }
+  .calendar-grid { --calendar-month-width: 78px; }
+}
