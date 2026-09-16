@@ -8,6 +8,7 @@ import { calcAsset, calcTotals, num } from './calc.js?v=10';
 import { renderCharts } from './charts.js?v=10';
 import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml } from './utils.js?v=10';
 import { t } from './i18n.js?v=10';
+import { renderCalendar } from './calendar.js?v=11';
 
 const $ = (id) => document.getElementById(id);
 
@@ -196,6 +197,7 @@ export function renderAll() {
   renderPriceRows();
   renderTabs();
   renderTabContent();
+  renderCalendar();
 }
 
 export function setLoading(msg) {
