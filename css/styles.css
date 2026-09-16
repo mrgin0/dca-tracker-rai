@@ -100,9 +100,6 @@ body.logged-in #login-view { display: none; }
 .masthead {
   background: var(--ink);
   border-bottom: 2px solid var(--champagne);
-  position: sticky;
-  top: 0;
-  z-index: 500; /* di atas konten biasa, di bawah modal (9999) & error banner (100000) */
 }
 .masthead-inner {
   width: 100%;
@@ -292,103 +289,6 @@ body.logged-in #login-view { display: none; }
 .price-row input:focus { outline: none; }
 .price-row .unit { color: var(--muted-2); font-size: 12px; white-space: nowrap; }
 .hint { font-size: 11.5px; color: var(--muted-2); margin-top: .9rem; }
-
-/* ============ CATAT TRANSAKSI — panel bisa dilipat ============ */
-.tx-form-toggle { cursor: pointer; user-select: none; }
-.tx-form-toggle:focus-visible { outline: 2px solid var(--champagne); outline-offset: 4px; border-radius: var(--radius-sm); }
-.tx-form-chevron {
-  color: var(--muted-2);
-  font-size: 15px;
-  flex-shrink: 0;
-  align-self: center;
-  transition: transform .18s ease, color .18s ease;
-}
-.tx-form-chevron.open { transform: rotate(180deg); color: var(--champagne); }
-.tx-form-body {
-  display: grid;
-  grid-template-rows: 1fr;
-  opacity: 1;
-  overflow: hidden;
-  transition: grid-template-rows .22s ease, opacity .18s ease, margin-top .22s ease;
-}
-.tx-form-body > * { min-height: 0; }
-.tx-form-body.collapsed {
-  grid-template-rows: 0fr;
-  opacity: 0;
-  pointer-events: none;
-}
-.tx-form-body.collapsed > .field-grid,
-.tx-form-body.collapsed > .btn-row { overflow: hidden; }
-
-/* ============ KALENDER INVESTASI BULANAN (gaya GitHub contribution) ============ */
-.calendar-panel .panel-head { flex-wrap: wrap; }
-.cal-year-nav {
-  display: flex; align-items: center; gap: .5rem;
-  flex-shrink: 0;
-}
-.cal-year-nav .btn-sm { padding: .4rem .55rem; }
-.cal-year-input {
-  font-family: var(--serif); font-weight: 700; font-size: 18px;
-  width: 4.4ch; text-align: center;
-  background: transparent; color: var(--text);
-  border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: .3rem .2rem;
-  -moz-appearance: textfield;
-}
-.cal-year-input::-webkit-inner-spin-button,
-.cal-year-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.cal-year-input:focus { outline: none; border-color: var(--champagne); }
-
-.cal-table { display: flex; flex-direction: column; gap: .3rem; margin-top: .25rem; overflow-x: auto; padding-bottom: .2rem; }
-.cal-row { display: flex; align-items: center; gap: .6rem; }
-.cal-head-row { margin-bottom: .15rem; }
-.cal-row-label {
-  width: 92px; flex-shrink: 0;
-  font-size: 11px; font-weight: 700; letter-spacing: .03em;
-  color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.cal-head-row .cal-row-label { width: 92px; }
-.cal-row-cells {
-  display: grid;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.cal-col-head {
-  font-size: 9.5px; font-weight: 700; text-align: center;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  padding-bottom: .2rem;
-}
-.cal-cell {
-  width: 13px;
-  height: 13px;
-  justify-self: center;
-  border-radius: 3px;
-  background: var(--line);
-  border: 1px solid var(--line-strong);
-  transition: transform .12s ease;
-}
-.cal-cell:hover { transform: scale(1.3); }
-.cal-cell.cal-none { background: var(--line); border-color: var(--line-strong); }
-.cal-cell.cal-once { background: #7BC96F; border-color: #5FAE55; }
-.cal-cell.cal-twice { background: #9B6FD6; border-color: #7C4FC0; }
-body.dark .cal-cell.cal-once { background: #4C9A4C; border-color: #6DBE6D; }
-body.dark .cal-cell.cal-twice { background: #7C5AC4; border-color: #9C7EE0; }
-.sr-only {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-}
-
-.cal-legend {
-  display: flex; flex-wrap: wrap; gap: 1.1rem;
-  margin-top: 1.1rem; padding-top: .9rem; border-top: 1px solid var(--line);
-}
-.cal-legend span { display: inline-flex; align-items: center; gap: .4rem; font-size: 11.5px; color: var(--muted); }
-.cal-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-.cal-swatch.cal-none { background: var(--line); border: 1px solid var(--line-strong); }
-.cal-swatch.cal-once { background: #7BC96F; border: 1px solid #5FAE55; }
-.cal-swatch.cal-twice { background: #9B6FD6; border: 1px solid #7C4FC0; }
-body.dark .cal-swatch.cal-once { background: #4C9A4C; border-color: #6DBE6D; }
-body.dark .cal-swatch.cal-twice { background: #7C5AC4; border-color: #9C7EE0; }
 
 /* ============ TABS ============ */
 .tabs {
@@ -830,13 +730,6 @@ body.modal-open { overflow: hidden; }
   font-weight: 700; letter-spacing: .04em; font-size: 12px; min-width: 26px; text-align: center;
 }
 .currency-toggle.is-idr { border-color: var(--champagne); background: rgba(199, 169, 104, .16); }
-.currency-toggle.is-loading { opacity: .6; pointer-events: none; }
-.currency-toggle.is-loading::after {
-  content: ''; width: 10px; height: 10px; margin-left: .4rem; display: inline-block;
-  border: 2px solid rgba(199,169,104,.4); border-top-color: var(--champagne); border-radius: 50%;
-  animation: spin .7s linear infinite; vertical-align: middle;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
    NOTES CARD
