@@ -2,12 +2,12 @@
 //  UI — DOM rendering (no event wiring; app.js delegates events)
 // ============================================================
 
-import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf, allSymbols } from './state.js?v=14';
-import { getPrice, getSavedPriceUSD, setPriceUSD, displayPriceValue } from './prices.js?v=14';
-import { calcAsset, calcTotals, num } from './calc.js?v=14';
-import { renderCharts } from './charts.js?v=14';
-import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml, currencySymbol } from './utils.js?v=14';
-import { t } from './i18n.js?v=14';
+import { state, assetOf, colorForAsset, canDeleteInstrument, saveActiveAsset, entriesOf } from './state.js?v=10';
+import { getPrice, getSavedPrice } from './prices.js?v=10';
+import { calcAsset, calcTotals, num } from './calc.js?v=10';
+import { renderCharts } from './charts.js?v=10';
+import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml } from './utils.js?v=10';
+import { t } from './i18n.js?v=10';
 
 const $ = (id) => document.getElementById(id);
 
@@ -39,25 +39,21 @@ export function renderStatement() {
 
 // ---------- PRICE ROWS ----------
 export function renderPriceRows() {
-  // Seed cache-dalam-memori dari nilai kanonik (USD) tersimpan, supaya harga
-  // tidak hilang tiap kali panel ini dirender ulang (mis. setelah tambah
-  // transaksi) dan supaya tampilannya otomatis mengikuti mata uang aktif.
+  const old = {};
   state.assets.forEach((a) => {
-    const savedUsd = getSavedPriceUSD(a.symbol);
-    if (savedUsd !== null && getPrice(a.symbol) === null) setPriceUSD(a.symbol, savedUsd);
+    const el = $('price-' + safeId(a.symbol));
+    if (el) old[a.symbol] = el.value;
   });
 
-  const cur = currencySymbol();
   $('price-rows').innerHTML = state.assets.map((a) => {
     const color = colorForAsset(a.symbol);
-    const val = displayPriceValue(a.symbol);
+    const val = old[a.symbol] || getSavedPrice(a.symbol) || '';
     return `
       <div class="price-row" style="--asset-color:${color};background:${hexToRgba(color, 0.05)}">
         <span class="asset-tag" style="color:${color}">${escapeHtml(a.symbol)}</span>
-        <span class="cur">${escapeHtml(cur)}</span>
+        <span class="cur">$</span>
         <input type="number" id="price-${safeId(a.symbol)}" data-price="${escapeHtml(a.symbol)}"
-               placeholder="${cur === 'Rp' ? '0' : '0.00'}" min="0" step="${cur === 'Rp' ? '1' : '0.01'}"
-               value="${escapeHtml(val)}" inputmode="decimal" />
+               placeholder="0.00" min="0" step="0.01" value="${escapeHtml(val)}" inputmode="decimal" />
         <span class="unit">/${escapeHtml(a.unit)}</span>
       </div>`;
   }).join('');
@@ -65,7 +61,7 @@ export function renderPriceRows() {
   const usdNote = $('price-usd-note');
   if (usdNote) {
     usdNote.textContent = t('prices.usdOnly');
-    usdNote.hidden = false;
+    usdNote.hidden = state.currency !== 'IDR';
   }
 }
 
@@ -168,94 +164,27 @@ export function renderTabContent() {
       ${caption}`;
   }
 
-  const cur = currencySymbol();
-  const isIdr = cur === 'Rp';
-  const pricePh = isIdr ? t('form.pricePhIdr') : t('form.pricePh');
-  const totalStep = isIdr ? '1' : '0.01';
-  // Terbuka secara default (supaya tombol "Tambah Pembelian" selalu langsung
-  // terlihat di semua instrumen) — hanya tertutup kalau user sendiri yang
-  // pernah menutupnya lewat klik header.
-  const formOpen = state.txFormOpen[a.symbol] !== false;
-
   $('tab-content').innerHTML = `
     <div class="panel">
-      <div class="panel-head tx-form-toggle" data-action="toggle-tx-form" data-symbol="${escapeHtml(a.symbol)}" role="button" tabindex="0">
-        <div>
-          <p class="eyebrow">${escapeHtml(t('form.eyebrow'))}</p>
-          <h2 class="panel-title">${escapeHtml(a.name)}</h2>
-        </div>
-        <i class="fa-solid fa-chevron-down tx-form-chevron ${formOpen ? 'open' : ''}"></i>
+      <div class="panel-head"><div>
+        <p class="eyebrow">${escapeHtml(t('form.eyebrow'))}</p>
+        <h2 class="panel-title">${escapeHtml(a.name)}</h2>
+      </div></div>
+      <div class="field-grid four">
+        <label class="field"><span>${escapeHtml(t('form.date'))}</span><input type="date" id="f-tanggal" value="${todayISO()}"></label>
+        <label class="field"><span>${escapeHtml(t('form.price', { unit: a.unit }))}</span><input type="number" id="f-harga" placeholder="${escapeHtml(t('form.pricePh'))}" min="0" step="0.01" inputmode="decimal"></label>
+        <label class="field"><span>${escapeHtml(t('form.qty'))}</span><input type="number" id="f-unit" placeholder="${escapeHtml(t('form.qtyPh'))}" min="0" step="any" inputmode="decimal"></label>
+        <label class="field"><span>${escapeHtml(t('form.total'))}</span><input type="number" id="f-total" placeholder="${escapeHtml(t('form.totalPh'))}" min="0" step="0.01" inputmode="decimal"></label>
       </div>
-      <div class="tx-form-body ${formOpen ? '' : 'collapsed'}">
-        <div class="field-grid four">
-          <label class="field"><span>${escapeHtml(t('form.date'))}</span><input type="date" id="f-tanggal" value="${todayISO()}"></label>
-          <label class="field"><span>${escapeHtml(t('form.price', { unit: a.unit, cur }))}</span><input type="number" id="f-harga" placeholder="${escapeHtml(pricePh)}" min="0" step="${totalStep}" inputmode="decimal"></label>
-          <label class="field"><span>${escapeHtml(t('form.qty'))}</span><input type="number" id="f-unit" placeholder="${escapeHtml(t('form.qtyPh'))}" min="0" step="any" inputmode="decimal"></label>
-          <label class="field"><span>${escapeHtml(t('form.total', { cur }))}</span><input type="number" id="f-total" placeholder="${escapeHtml(t('form.totalPh'))}" min="0" step="${totalStep}" inputmode="decimal"></label>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn btn-primary" data-action="save-entry" data-symbol="${escapeHtml(a.symbol)}">${escapeHtml(t('form.add'))}</button>
-          ${canDeleteInstrument(a) ? `<button type="button" class="btn btn-danger" data-action="remove-asset" data-symbol="${escapeHtml(a.symbol)}"><i class="fa fa-trash"></i> ${escapeHtml(t('form.removeInstrument'))}</button>` : ''}
-        </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" data-action="save-entry" data-symbol="${escapeHtml(a.symbol)}">${escapeHtml(t('form.add'))}</button>
+        ${canDeleteInstrument(a) ? `<button type="button" class="btn btn-danger" data-action="remove-asset" data-symbol="${escapeHtml(a.symbol)}"><i class="fa fa-trash"></i> ${escapeHtml(t('form.removeInstrument'))}</button>` : ''}
       </div>
     </div>
     ${summaryHtml}
     <div class="panel">${tableHtml}</div>`;
 
   renderStatement();
-}
-
-// ---------- KALENDER PEMANTAUAN INVESTASI BULANAN ----------
-const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-const CAL_COL_WIDTH = 30; // px per kolom instrumen — kotak dibuat kecil ala GitHub, bukan melebar penuh
-
-export function renderInvestmentCalendar() {
-  const wrap = $('investment-calendar');
-  if (!wrap) return;
-  const year = state.calendarYear || new Date().getFullYear();
-  const yearInput = $('cal-year-label');
-  // Jangan timpa nilai kalau elemen sedang difokus (user sedang mengetik tahun).
-  if (yearInput && document.activeElement !== yearInput) yearInput.value = String(year);
-
-  const symbols = allSymbols();
-  if (symbols.length === 0) {
-    wrap.innerHTML = `<div class="empty"><i class="fa-regular fa-calendar"></i>${escapeHtml(t('cal.empty'))}</div>`;
-    return;
-  }
-
-  const headCells = symbols.map((s) => {
-    const color = colorForAsset(s);
-    return `<div class="cal-col-head" style="color:${color}">${escapeHtml(s)}</div>`;
-  }).join('');
-
-  const rows = MONTH_KEYS.map((mk, idx) => {
-    const monthPrefix = `${year}-${String(idx + 1).padStart(2, '0')}`;
-    const cells = symbols.map((s) => {
-      const count = entriesOf(s).filter((e) => String(e.tanggal || '').startsWith(monthPrefix)).length;
-      const cls = count === 0 ? 'none' : count === 1 ? 'once' : 'twice';
-      const title = `${s} — ${t('cal.' + mk)} ${year}: ${count}× ${t('cal.txSuffix')}`;
-      return `<div class="cal-cell cal-${cls}" title="${escapeHtml(title)}"><span class="sr-only">${count}</span></div>`;
-    }).join('');
-    return `
-      <div class="cal-row">
-        <div class="cal-row-label">${escapeHtml(t('cal.' + mk)).toUpperCase()}</div>
-        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},${CAL_COL_WIDTH}px)">${cells}</div>
-      </div>`;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div class="cal-table">
-      <div class="cal-row cal-head-row">
-        <div class="cal-row-label"></div>
-        <div class="cal-row-cells" style="grid-template-columns:repeat(${symbols.length},${CAL_COL_WIDTH}px)">${headCells}</div>
-      </div>
-      ${rows}
-    </div>
-    <div class="cal-legend">
-      <span><i class="cal-swatch cal-none"></i>${escapeHtml(t('cal.legendNone'))}</span>
-      <span><i class="cal-swatch cal-once"></i>${escapeHtml(t('cal.legendOnce'))}</span>
-      <span><i class="cal-swatch cal-twice"></i>${escapeHtml(t('cal.legendTwice'))}</span>
-    </div>`;
 }
 
 // ---------- ORCHESTRATE ----------
@@ -267,7 +196,6 @@ export function renderAll() {
   renderPriceRows();
   renderTabs();
   renderTabContent();
-  renderInvestmentCalendar();
 }
 
 export function setLoading(msg) {
