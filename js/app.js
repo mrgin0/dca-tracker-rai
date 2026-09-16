@@ -2,27 +2,27 @@
 //  APP — entry point: login gate, wiring, event delegation
 // ============================================================
 
-import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf, saveCurrency } from './state.js?v=10';
-import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA, fmt, fmtPct } from './utils.js?v=10';
-import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=10';
-import { auth } from './firebase-config.js?v=10';
+import { state, initData, DEFAULT_ASSETS, assetOf, entriesOf, saveCurrency } from './state.js?v=13';
+import { initTheme, applyTheme, showAlert, showConfirm, openBackdrop, closeBackdrop, fileToLogoDataURL, formatDateTimeWITA, fmt, fmtPct, toDisplayCurrency, toUSDFromDisplay, currencySymbol, numForInput } from './utils.js?v=13';
+import { signIn, signOut, resetPassword, onAuth } from './auth.js?v=13';
+import { auth } from './firebase-config.js?v=13';
 import {
   fetchAssets, createAsset, deleteAsset,
   fetchTransactions, createTransaction, updateTransaction, deleteTransaction,
   getBranding, saveBranding,
   getLastPriceSnapshot, saveLastPriceSnapshot,
-} from './store.js?v=10';
-import { fetchMarketPrices, savePriceInput, applyPrice, getPrice } from './prices.js?v=10';
-import { renderAll, renderTabContent, setLoading } from './ui.js?v=10';
-import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
-import { exportXLSX, exportBackupJSON } from './export.js?v=10';
-import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
-import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
-import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=10';
+} from './store.js?v=13';
+import { fetchMarketPrices, savePriceInput, applyPrice, getPrice, setPriceUSD } from './prices.js?v=13';
+import { renderAll, renderTabContent, renderInvestmentCalendar, setLoading } from './ui.js?v=13';
+import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=13';
+import { exportXLSX, exportBackupJSON } from './export.js?v=13';
+import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=13';
+import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=13';
+import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=13';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
   handleSaveNote, handleDeleteNote,
-} from './notes.js?v=10';
+} from './notes.js?v=13';
 
 const $ = (id) => document.getElementById(id);
 
@@ -293,12 +293,19 @@ async function handleRemoveAsset(symbol) {
 }
 
 // ---------- TRANSACTION: ADD ----------
+/**
+ * Baca field harga/qty/total dari form. Harga & total diketik dalam mata uang
+ * tampilan aktif (USD atau IDR sesuai tombol di header), lalu dikonversi ke
+ * USD di sini karena semua data disimpan secara kanonik dalam USD.
+ */
 function readEntryFields(prefix) {
+  const hargaDisplay = parseFloat($(`${prefix}-harga`).value);
+  const totalDisplay = parseFloat($(`${prefix}-total`).value);
   return {
     tanggal: $(`${prefix}-tanggal`).value,
-    hargaBeli: parseFloat($(`${prefix}-harga`).value),
+    hargaBeli: toUSDFromDisplay(hargaDisplay),
     jumlahUnit: parseFloat($(`${prefix}-unit`).value),
-    totalBeli: parseFloat($(`${prefix}-total`).value),
+    totalBeli: toUSDFromDisplay(totalDisplay),
   };
 }
 
@@ -309,8 +316,18 @@ function validEntry(v) {
     && Number.isFinite(v.totalBeli) && v.totalBeli > 0;
 }
 
+/** Mode IDR butuh kurs dulu supaya konversi ke USD kanonik akurat. */
+function needsRateFirst() {
+  if (state.currency === 'IDR' && !state.rate) {
+    showAlert(t('common.rateNotReady'));
+    return true;
+  }
+  return false;
+}
+
 async function handleSaveEntry(asset) {
   if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
+  if (needsRateFirst()) return;
   const v = readEntryFields('f');
   if (!validEntry(v)) return showAlert(t('common.fillFields'));
   try {
@@ -358,13 +375,15 @@ function openEditModal(symbol, id) {
   state.editId = String(tx.id);
   state.editAsset = found.symbol;
 
+  const cur = currencySymbol();
   $('edit-modal-sub').textContent = t('edit.sub', { name: a?.name || found.symbol });
   $('e-tanggal').value = tx.tanggal || '';
-  $('e-harga').value = Number.isFinite(Number(tx.hargaBeli)) ? tx.hargaBeli : '';
+  $('e-harga').value = Number.isFinite(Number(tx.hargaBeli)) ? numForInput(toDisplayCurrency(Number(tx.hargaBeli))) : '';
   $('e-unit').value = Number.isFinite(Number(tx.jumlahUnit)) ? tx.jumlahUnit : '';
-  $('e-total').value = Number.isFinite(Number(tx.totalBeli)) ? tx.totalBeli : '';
+  $('e-total').value = Number.isFinite(Number(tx.totalBeli)) ? numForInput(toDisplayCurrency(Number(tx.totalBeli))) : '';
   $('e-unit-label').textContent = a?.unit || 'unit';
-  $('e-harga-label').textContent = t('form.price', { unit: a?.unit || 'unit' });
+  $('e-harga-label').textContent = t('form.price', { unit: a?.unit || 'unit', cur });
+  $('e-total-label').textContent = t('edit.total', { cur });
 
   renderEditPreview();
   openBackdrop('edit-modal-backdrop');
@@ -381,9 +400,10 @@ function closeEditModal() {
 function renderEditPreview() {
   const symbol = state.editAsset;
   if (!symbol) return;
-  const cp = getPrice(symbol);
+  const cp = getPrice(symbol); // USD kanonik
   const units = parseFloat($('e-unit').value);
-  const total = parseFloat($('e-total').value);
+  const totalDisplay = parseFloat($('e-total').value);
+  const totalUSD = toUSDFromDisplay(totalDisplay); // form ini diketik dalam mata uang aktif
   const nowEl = $('e-now'), gainEl = $('e-gain'), pctEl = $('e-pct');
 
   if (cp === null || !Number.isFinite(units)) {
@@ -392,15 +412,15 @@ function renderEditPreview() {
     pctEl.textContent = cp === null ? t('edit.noPrice') : '—'; pctEl.className = '';
     return;
   }
-  const nilai = units * cp;
+  const nilai = units * cp; // USD
   nowEl.textContent = fmt(nilai);
-  if (!Number.isFinite(total)) {
+  if (!Number.isFinite(totalUSD)) {
     gainEl.textContent = '—'; gainEl.className = '';
     pctEl.textContent = '—'; pctEl.className = '';
     return;
   }
-  const gain = nilai - total;
-  const pct = total > 0 ? (gain / total) * 100 : null;
+  const gain = nilai - totalUSD;
+  const pct = totalUSD > 0 ? (gain / totalUSD) * 100 : null;
   const cls = gain >= 0 ? 'positive' : 'negative';
   gainEl.textContent = fmt(gain); gainEl.className = cls;
   pctEl.textContent = pct !== null ? fmtPct(pct) : '—'; pctEl.className = cls;
@@ -408,6 +428,7 @@ function renderEditPreview() {
 
 async function handleEditSave() {
   if (!ensureUser()) return showAlert(t('common.notLoggedIn'), t('common.notLoggedInTitle'));
+  if (needsRateFirst()) return;
   const id = state.editId;
   if (!id) return closeEditModal();
   const v = readEntryFields('e');
@@ -567,7 +588,7 @@ function wireEvents() {
   initMarketStrip({
     onRateRefresh: async () => {
       await loadRate({ force: true });
-      if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+      if (state.currency === 'IDR') { renderAll(); renderCharts(); }
     },
   });
   $('note-add').addEventListener('click', handleAddNote);
@@ -599,6 +620,18 @@ function wireEvents() {
         break;
       case 'set-chart-range': setChartRange(range); break;
       case 'reset-zoom': resetChartZoom(); break;
+      case 'toggle-tx-form':
+        state.txFormOpen[symbol] = !state.txFormOpen[symbol];
+        renderTabContent();
+        break;
+      case 'cal-prev-year':
+        state.calendarYear = (state.calendarYear || new Date().getFullYear()) - 1;
+        renderInvestmentCalendar();
+        break;
+      case 'cal-next-year':
+        state.calendarYear = (state.calendarYear || new Date().getFullYear()) + 1;
+        renderInvestmentCalendar();
+        break;
       case 'note-edit': startEditNote(id); break;
       case 'note-cancel': cancelEditNote(); break;
       case 'note-save': handleSaveNote(id); break;
@@ -614,7 +647,25 @@ function wireEvents() {
     else if (t.id === 'e-harga' || t.id === 'e-unit') { autoCalcTotal('e'); renderEditPreview(); }
     else if (t.id === 'e-total') { autoCalcUnit('e'); renderEditPreview(); }
     else if (t.id === 'e-tanggal') renderEditPreview();
-    else if (t.dataset.price) { savePriceInput(t.dataset.price, t.value); renderTabContent(); }
+    else if (t.dataset.price) {
+      // Nilai yang diketik ada dalam mata uang tampilan aktif (USD/IDR);
+      // konversi ke USD kanonik sebelum disimpan/dipakai kalkulasi.
+      const raw = parseFloat(t.value);
+      const usd = Number.isFinite(raw) ? toUSDFromDisplay(raw) : null;
+      setPriceUSD(t.dataset.price, usd);
+      savePriceInput(t.dataset.price, Number.isFinite(usd) && usd > 0 ? String(usd) : '');
+      renderTabContent();
+    }
+  });
+
+  // Aksesibilitas: buka/tutup form "Catat Transaksi" juga lewat keyboard.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target.closest('[data-action="toggle-tx-form"]');
+    if (!el) return;
+    e.preventDefault();
+    state.txFormOpen[el.dataset.symbol] = !state.txFormOpen[el.dataset.symbol];
+    renderTabContent();
   });
 }
 
@@ -696,7 +747,7 @@ function boot() {
     // Kurs dimuat di latar; kalau mode IDR aktif, tampilan disegarkan setelahnya.
     loadRate().then(() => {
       renderRateChip();
-      if (state.currency === 'IDR') { renderTabContent(); renderCharts(); }
+      if (state.currency === 'IDR') { renderAll(); renderCharts(); }
     });
 
     // onAuthStateChanged selalu dipanggil sekali di awal dengan user saat ini,
