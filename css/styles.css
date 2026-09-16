@@ -100,6 +100,9 @@ body.logged-in #login-view { display: none; }
 .masthead {
   background: var(--ink);
   border-bottom: 2px solid var(--champagne);
+  position: sticky;
+  top: 0;
+  z-index: 500; /* di atas konten biasa, di bawah modal (9999) & error banner (100000) */
 }
 .masthead-inner {
   width: 100%;
@@ -324,7 +327,17 @@ body.logged-in #login-view { display: none; }
   flex-shrink: 0;
 }
 .cal-year-nav .btn-sm { padding: .4rem .55rem; }
-.cal-year { font-family: var(--serif); font-weight: 700; font-size: 18px; min-width: 3.4ch; text-align: center; }
+.cal-year-input {
+  font-family: var(--serif); font-weight: 700; font-size: 18px;
+  width: 4.4ch; text-align: center;
+  background: transparent; color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: .3rem .2rem;
+  -moz-appearance: textfield;
+}
+.cal-year-input::-webkit-inner-spin-button,
+.cal-year-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.cal-year-input:focus { outline: none; border-color: var(--champagne); }
 
 .cal-table { display: flex; flex-direction: column; gap: .3rem; margin-top: .25rem; overflow-x: auto; padding-bottom: .2rem; }
 .cal-row { display: flex; align-items: center; gap: .6rem; }
@@ -817,6 +830,13 @@ body.modal-open { overflow: hidden; }
   font-weight: 700; letter-spacing: .04em; font-size: 12px; min-width: 26px; text-align: center;
 }
 .currency-toggle.is-idr { border-color: var(--champagne); background: rgba(199, 169, 104, .16); }
+.currency-toggle.is-loading { opacity: .6; pointer-events: none; }
+.currency-toggle.is-loading::after {
+  content: ''; width: 10px; height: 10px; margin-left: .4rem; display: inline-block;
+  border: 2px solid rgba(199,169,104,.4); border-top-color: var(--champagne); border-radius: 50%;
+  animation: spin .7s linear infinite; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
    NOTES CARD
