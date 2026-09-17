@@ -18,12 +18,12 @@ import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
 import { exportXLSX, exportBackupJSON } from './export.js?v=10';
 import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
 import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
-import { shiftCalendarYear } from './calendar.js?v=12';
+import { setCalendarYear } from './calendar.js?v=12';
 import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=10';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
-  handleSaveNote, handleDeleteNote,
-} from './notes.js?v=10';
+  handleSaveNote, handleDeleteNote, initNoteEditor,
+} from './notes.js?v=11';
 
 const $ = (id) => document.getElementById(id);
 
@@ -572,6 +572,7 @@ function wireEvents() {
     },
   });
   $('note-add').addEventListener('click', handleAddNote);
+  initNoteEditor();
 
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
@@ -600,13 +601,17 @@ function wireEvents() {
         break;
       case 'set-chart-range': setChartRange(range); break;
       case 'reset-zoom': resetChartZoom(); break;
-      case 'calendar-prev': shiftCalendarYear(-1); break;
-      case 'calendar-next': shiftCalendarYear(1); break;
+
       case 'note-edit': startEditNote(id); break;
       case 'note-cancel': cancelEditNote(); break;
       case 'note-save': handleSaveNote(id); break;
       case 'note-del': handleDeleteNote(id); break;
     }
+  });
+
+  document.addEventListener('change', (e) => {
+    const el = e.target;
+    if (el?.id === 'calendar-year-select') setCalendarYear(Number(el.value));
   });
 
   document.addEventListener('input', (e) => {
