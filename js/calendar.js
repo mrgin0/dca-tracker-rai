@@ -1,8 +1,8 @@
 // ============================================================
-//  INVESTMENT CALENDAR — frekuensi pembelian per bulan / aset
+//  INVESTMENT CALENDAR â€” frekuensi pembelian per bulan / aset
 // ============================================================
 
-import { state, entriesOf } from './state.js?v=10';
+import { state, entriesOf, colorForAsset } from './state.js?v=10';
 import { t } from './i18n.js?v=10';
 import { escapeHtml } from './utils.js?v=10';
 
@@ -46,7 +46,7 @@ function renderCell(count, symbol, monthIndex, year) {
     : count === 1
       ? t('calendar.invested')
       : t('calendar.notInvested');
-  return `<span class="calendar-cell ${status}" title="${escapeHtml(`${symbol} · ${monthName(monthIndex)} ${year}: ${count} ${count === 1 ? 'transaksi' : 'transaksi'}`)}" aria-label="${escapeHtml(`${symbol} · ${monthName(monthIndex)} ${year}: ${label}`)}"></span>`;
+  return `<span class="calendar-cell ${status}" title="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${count} ${count === 1 ? 'transaksi' : 'transaksi'}`)}" aria-label="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${label}`)}"></span>`;
 }
 
 export function renderCalendar() {
@@ -58,7 +58,7 @@ export function renderCalendar() {
   const counts = countsForYear(year);
 
   const assetHeaders = assets.map((a) =>
-    `<span class="calendar-asset" title="${escapeHtml(a.name || a.symbol)}">${escapeHtml(a.symbol)}</span>`
+    `<span class="calendar-asset" style="--asset-color:${escapeHtml(colorForAsset(a.symbol))}" title="${escapeHtml(a.name || a.symbol)}">${escapeHtml(a.symbol)}</span>`
   ).join('');
 
   const rows = MONTHS_ID.map((_, monthIndex) => `
