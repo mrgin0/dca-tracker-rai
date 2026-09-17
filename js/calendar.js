@@ -2,7 +2,7 @@
 //  INVESTMENT CALENDAR â€” frekuensi pembelian per bulan / aset
 // ============================================================
 
-import { state, entriesOf, colorForAsset } from './state.js?v=10';
+import { state, entriesOf } from './state.js?v=10';
 import { t } from './i18n.js?v=10';
 import { escapeHtml } from './utils.js?v=10';
 
@@ -49,6 +49,31 @@ function renderCell(count, symbol, monthIndex, year) {
   return `<span class="calendar-cell ${status}" title="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${count} ${count === 1 ? 'transaksi' : 'transaksi'}`)}" aria-label="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${label}`)}"></span>`;
 }
 
+function availableYears() {
+  const years = new Set();
+  const nowYear = new Date().getFullYear();
+  for (let y = nowYear - 10; y <= nowYear + 10; y++) years.add(y);
+  (state.assets || []).forEach((asset) => {
+    entriesOf(asset.symbol).forEach((tx) => {
+      const match = String(tx.tanggal || '').match(/^(\d{4})-/);
+      if (match) years.add(Number(match[1]));
+    });
+  });
+  return [...years].sort((a, b) => a - b);
+}
+
+function yearOptions(selectedYear) {
+  return availableYears().map((y) =>
+    `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`
+  ).join('');
+}
+
+export function setCalendarYear(year) {
+  if (!Number.isInteger(year)) return;
+  state.calendarYear = year;
+  renderCalendar();
+}
+
 export function renderCalendar() {
   const root = $('investment-calendar');
   if (!root) return;
@@ -58,7 +83,7 @@ export function renderCalendar() {
   const counts = countsForYear(year);
 
   const assetHeaders = assets.map((a) =>
-    `<span class="calendar-asset" style="--asset-color:${escapeHtml(colorForAsset(a.symbol))}" title="${escapeHtml(a.name || a.symbol)}">${escapeHtml(a.symbol)}</span>`
+    `<span class="calendar-asset" title="${escapeHtml(a.name || a.symbol)}">${escapeHtml(a.symbol)}</span>`
   ).join('');
 
   const rows = MONTHS_ID.map((_, monthIndex) => `
@@ -75,9 +100,9 @@ export function renderCalendar() {
           <p class="calendar-hint">${escapeHtml(t('calendar.hint'))}</p>
         </div>
         <div class="calendar-year-nav" aria-label="${escapeHtml(t('calendar.yearNav'))}">
-          <button type="button" class="calendar-nav-btn" data-action="calendar-prev" aria-label="${escapeHtml(t('calendar.previous'))}"><i class="fa-solid fa-chevron-left"></i></button>
-          <span class="calendar-year">${year}</span>
-          <button type="button" class="calendar-nav-btn" data-action="calendar-next" aria-label="${escapeHtml(t('calendar.next'))}"><i class="fa-solid fa-chevron-right"></i></button>
+          <select id="calendar-year-select" class="calendar-year-select" aria-label="${escapeHtml(state.lang === 'en' ? 'Select year' : 'Pilih tahun')}">
+            ${yearOptions(year)}
+          </select>
         </div>
       </div>
 
