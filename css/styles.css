@@ -851,6 +851,7 @@ body.modal-open { overflow: hidden; }
   --calendar-col-width: 34px;
   display: grid;
   grid-template-columns: var(--calendar-month-width) repeat(var(--calendar-assets), var(--calendar-col-width));
+  grid-auto-rows: min-content;
   column-gap: 4px; row-gap: 8px;
   width: max-content; min-width: calc(var(--calendar-month-width) + (var(--calendar-assets) * var(--calendar-col-width)));
   align-items: center;
@@ -861,15 +862,19 @@ body.modal-open { overflow: hidden; }
   font-size: 10.5px; font-weight: 800; letter-spacing: .01em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   color: var(--asset-color, var(--ink));
+  align-self: center;
 }
 body.dark .calendar-asset { color: color-mix(in srgb, var(--asset-color, var(--on-ink)) 72%, white 28%); }
 .calendar-month {
   height: 24px; display: flex; align-items: center;
   font-size: 11px; font-weight: 700; color: var(--calendar-month-color);
   text-transform: uppercase; letter-spacing: .03em; white-space: nowrap;
+  align-self: center;
 }
 .calendar-cell {
-  width: 18px; height: 18px; justify-self: center;
+  box-sizing: border-box;
+  width: 18px; height: 18px; min-height: 18px; max-height: 18px; min-width: 18px; max-width: 18px;
+  align-self: center; justify-self: center;
   display: block; border-radius: 5px;
   border: 1.5px solid var(--calendar-cell-empty-border); background: var(--calendar-cell-empty);
   transition: background .15s ease, border-color .15s ease;
@@ -882,11 +887,11 @@ body.dark .calendar-asset { color: color-mix(in srgb, var(--asset-color, var(--o
   font-size: 11px; color: var(--muted-2); flex-wrap: wrap;
 }
 .calendar-legend span { display: inline-flex; align-items: center; gap: .4rem; }
-.calendar-legend .calendar-cell { width: 13px; height: 13px; border-radius: 4px; border-width: 1.5px; flex: none; }
+.calendar-legend .calendar-cell { width: 13px; height: 13px; min-width: 13px; min-height: 13px; max-width: 13px; max-height: 13px; border-radius: 4px; border-width: 1.5px; flex: none; }
 
 @media (max-width: 560px) {
   .calendar-head { flex-direction: column; }
   .calendar-year-nav { align-self: flex-end; }
   .calendar-grid { --calendar-month-width: 84px; --calendar-col-width: 30px; }
-  .calendar-cell { width: 16px; height: 16px; }
+  .calendar-cell { width: 16px; height: 16px; min-width: 16px; min-height: 16px; max-width: 16px; max-height: 16px; }
 }
