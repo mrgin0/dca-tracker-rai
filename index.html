@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link rel="stylesheet" href="css/styles.css?v=13" />
+<link rel="stylesheet" href="css/styles.css?v=12" />
 </head>
 <body class="logged-out">
 
@@ -198,8 +198,53 @@
       </div>
 
       <div class="note-composer">
-        <textarea id="note-input" rows="3" data-i18n-ph="notes.placeholder"
-                  placeholder="Tulis catatan: alasan beli, target, rencana rebalancing…"></textarea>
+        <div class="rich-editor" id="note-editor">
+          <div class="rich-toolbar" role="toolbar" aria-label="Format catatan">
+            <select class="rich-select" data-command="fontName" aria-label="Font">
+              <option value="Inter">Sans Serif</option>
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New</option>
+            </select>
+            <select class="rich-select rich-size" data-command="fontSize" aria-label="Ukuran">
+              <option value="2">12pt</option>
+              <option value="1">10pt</option>
+              <option value="3">14pt</option>
+              <option value="4">16pt</option>
+              <option value="5">18pt</option>
+              <option value="6">24pt</option>
+            </select>
+            <select class="rich-select rich-format" data-command="formatBlock" aria-label="Paragraf">
+              <option value="p">Paragraph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+              <option value="blockquote">Quote</option>
+            </select>
+            <span class="rich-divider"></span>
+            <button type="button" class="rich-btn" data-command="bold" title="Bold" aria-label="Bold"><i class="fa-solid fa-bold"></i></button>
+            <button type="button" class="rich-btn" data-command="italic" title="Italic" aria-label="Italic"><i class="fa-solid fa-italic"></i></button>
+            <button type="button" class="rich-btn" data-command="underline" title="Underline" aria-label="Underline"><i class="fa-solid fa-underline"></i></button>
+            <button type="button" class="rich-btn" data-command="strikeThrough" title="Coret" aria-label="Coret"><i class="fa-solid fa-strikethrough"></i></button>
+            <button type="button" class="rich-btn" data-command="removeFormat" title="Hapus format" aria-label="Hapus format"><i class="fa-solid fa-eraser"></i></button>
+            <button type="button" class="rich-btn" data-command="foreColor" data-value="#6B7280" title="Warna teks" aria-label="Warna teks"><i class="fa-solid fa-font"></i></button>
+            <button type="button" class="rich-btn" data-command="hiliteColor" data-value="#FFF2B2" title="Sorot teks" aria-label="Sorot teks"><i class="fa-solid fa-highlighter"></i></button>
+            <span class="rich-divider"></span>
+            <button type="button" class="rich-btn" data-command="justifyLeft" title="Rata kiri" aria-label="Rata kiri"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" class="rich-btn" data-command="justifyCenter" title="Rata tengah" aria-label="Rata tengah"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" class="rich-btn" data-command="justifyRight" title="Rata kanan" aria-label="Rata kanan"><i class="fa-solid fa-align-right"></i></button>
+            <button type="button" class="rich-btn" data-command="justifyFull" title="Rata penuh" aria-label="Rata penuh"><i class="fa-solid fa-align-justify"></i></button>
+            <button type="button" class="rich-btn" data-command="insertUnorderedList" title="Bullet" aria-label="Bullet"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" class="rich-btn" data-command="insertOrderedList" title="Nomor" aria-label="Nomor"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" class="rich-btn" data-command="createLink" title="Tautan" aria-label="Tautan"><i class="fa-solid fa-link"></i></button>
+            <button type="button" class="rich-btn" data-command="insertImage" title="Gambar" aria-label="Gambar"><i class="fa-regular fa-image"></i></button>
+            <button type="button" class="rich-btn" data-command="insertHorizontalRule" title="Garis" aria-label="Garis"><i class="fa-solid fa-minus"></i></button>
+            <span class="rich-divider"></span>
+            <button type="button" class="rich-btn" data-command="undo" title="Undo" aria-label="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="rich-btn" data-command="redo" title="Redo" aria-label="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+          </div>
+          <div id="note-input" class="rich-input" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Tulis catatan: alasan beli, target, rencana rebalancing…"></div>
+        </div>
         <button class="btn btn-primary" id="note-add" type="button">
           <i class="fa-solid fa-plus"></i> <span data-i18n="notes.add">Tambah Catatan</span>
         </button>
