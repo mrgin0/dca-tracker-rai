@@ -18,7 +18,7 @@ import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
 import { exportXLSX, exportBackupJSON } from './export.js?v=10';
 import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
 import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
-import { shiftCalendarYear } from './calendar.js?v=11';
+import { shiftCalendarYear } from './calendar.js?v=12';
 import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=10';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
