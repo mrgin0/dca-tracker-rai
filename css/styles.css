@@ -888,7 +888,9 @@ body.dark .calendar-asset { color: color-mix(in srgb, var(--asset-color, var(--o
 }
 .calendar-legend span { display: inline-flex; align-items: center; gap: .4rem; }
 .calendar-legend .calendar-cell { width: 13px; height: 13px; min-width: 13px; min-height: 13px; max-width: 13px; max-height: 13px; border-radius: 4px; border-width: 1.5px; flex: none; }
-
+.calendar-cell.empty {
+  padding: 0;
+}
 @media (max-width: 560px) {
   .calendar-head { flex-direction: column; }
   .calendar-year-nav { align-self: flex-end; }
