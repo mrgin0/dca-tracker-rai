@@ -762,7 +762,7 @@ body.modal-open { overflow: hidden; }
 .rich-btn i { font-size: 11px; }
 .rich-divider { width: 1px; height: 19px; background: var(--line-strong); margin: 0 3px; }
 .rich-input {
-  min-height: 105px; max-height: 320px; overflow-y: auto; padding: .7rem .8rem;
+  min-height: 105px; max-height: 320px; overflow: auto; padding: .7rem .8rem;
   font-family: var(--sans); font-size: 14px; line-height: 1.6; outline: none;
 }
 .rich-input:empty::before {
@@ -771,7 +771,7 @@ body.modal-open { overflow: hidden; }
 .rich-input:focus { box-shadow: inset 0 0 0 1px var(--champagne); }
 .rich-input h1, .rich-input h2, .rich-input h3 { margin: .25rem 0 .5rem; }
 .rich-input blockquote { margin: .5rem 0; padding-left: .75rem; border-left: 3px solid var(--champagne); color: var(--muted); }
-.rich-content { overflow-wrap: anywhere; }
+.rich-content { overflow-wrap: anywhere; overflow-x: auto; }
 .rich-content img { max-width: 100%; height: auto; border-radius: 6px; }
 .rich-content a { color: var(--champagne); text-decoration: underline; }
 .note-composer .btn { align-self: flex-start; }
@@ -889,4 +889,110 @@ body.modal-open { overflow: hidden; }
   .calendar-head { flex-direction: column; }
   .calendar-year-nav { align-self: flex-end; }
   .calendar-grid { --calendar-month-width: 78px; }
+}
+
+/* ============================================================
+   POLISH — sticky masthead, calendar theme/mobile, journal tables,
+   compact transaction summary + collapsible purchase history.
+   ============================================================ */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.asset-summary-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.history-details {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+.history-summary {
+  list-style: none;
+  cursor: pointer;
+  min-height: 46px;
+  padding: .7rem .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  user-select: none;
+}
+.history-summary::-webkit-details-marker { display: none; }
+.history-summary > span { display: inline-flex; align-items: center; gap: .5rem; }
+.history-summary > span i { color: var(--champagne); }
+.history-chevron { color: var(--muted); transition: transform .16s ease; }
+.history-details[open] .history-chevron { transform: rotate(180deg); }
+.history-details[open] .history-summary { border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.history-body { padding: .8rem .9rem .1rem; }
+
+/* Rich journal table — works in light/dark mode and remains scrollable on mobile. */
+.rich-input .note-table,
+.rich-content .note-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  margin: .7rem 0;
+  font-size: 13px;
+}
+.rich-input .note-table th,
+.rich-input .note-table td,
+.rich-content .note-table th,
+.rich-content .note-table td {
+  border: 1px solid var(--line-strong);
+  padding: .5rem .6rem;
+  text-align: left;
+  vertical-align: top;
+  color: var(--text);
+  background: var(--surface);
+}
+.rich-input .note-table th,
+.rich-content .note-table th {
+  font-weight: 600;
+  background: var(--surface-2);
+}
+.rich-input .note-table td:focus,
+.rich-input .note-table th:focus { outline: 1px solid var(--champagne); outline-offset: -1px; }
+
+.calendar-asset,
+.calendar-month { color: var(--text); }
+.calendar-asset { font-weight: 700; }
+.calendar-month { font-weight: 600; }
+.calendar-grid { max-width: 100%; }
+.calendar-scroll { max-width: 100%; }
+
+@media (max-width: 760px) {
+  .asset-summary-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .calendar-grid {
+    --calendar-month-width: 76px;
+    grid-template-columns: var(--calendar-month-width) repeat(var(--calendar-assets), 24px);
+    min-width: calc(var(--calendar-month-width) + (var(--calendar-assets) * 24px));
+  }
+  .calendar-asset { font-size: 8px; }
+  .calendar-month { font-size: 9px; }
+  .history-body { padding-left: .65rem; padding-right: .65rem; }
+}
+
+@media (max-width: 560px) {
+  .asset-summary-three { grid-template-columns: 1fr; }
+  .asset-summary-three .asset-metric { padding: .75rem .85rem; }
+  .calendar-grid {
+    --calendar-month-width: 72px;
+    grid-template-columns: var(--calendar-month-width) repeat(var(--calendar-assets), 22px);
+    min-width: calc(var(--calendar-month-width) + (var(--calendar-assets) * 22px));
+    column-gap: 1px;
+  }
+  .calendar-asset { font-size: 7.5px; }
+  .calendar-month { font-size: 8.5px; }
+  .calendar-cell { width: 11px; height: 11px; }
+  .history-summary { min-height: 44px; padding: .65rem .75rem; }
+  .rich-input .note-table,
+  .rich-content .note-table { min-width: 360px; }
 }
