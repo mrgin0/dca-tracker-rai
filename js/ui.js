@@ -8,7 +8,6 @@ import { calcAsset, calcTotals, num } from './calc.js?v=10';
 import { renderCharts } from './charts.js?v=10';
 import { fmt, fmtN, fmtPct, safeId, hexToRgba, todayISO, escapeHtml } from './utils.js?v=10';
 import { t } from './i18n.js?v=10';
-import { renderCalendar } from './calendar.js?v=11';
 
 const $ = (id) => document.getElementById(id);
 
@@ -87,11 +86,9 @@ export function renderTabContent() {
   if (entries.length > 0) {
     const gcls = calc.gain !== null ? (calc.gain >= 0 ? 'positive' : 'negative') : '';
     summaryHtml = `
-      <div class="asset-summary">
+      <div class="asset-summary asset-summary-three">
         <div class="asset-metric"><div class="label">${escapeHtml(t('metric.units'))}</div><div class="value">${fmtN(calc.totalUnits, 6)}</div><div class="sub">${escapeHtml(a.unit)}</div></div>
-        <div class="asset-metric"><div class="label">${escapeHtml(t('metric.avg'))}</div><div class="value">${fmt(calc.avgPrice)}</div></div>
         <div class="asset-metric"><div class="label">${escapeHtml(t('metric.invested'))}</div><div class="value">${fmt(calc.totalCost)}</div></div>
-        <div class="asset-metric"><div class="label">${escapeHtml(t('metric.now'))}</div><div class="value">${calc.currentVal !== null ? fmt(calc.currentVal) : '—'}</div></div>
         <div class="asset-metric"><div class="label">${escapeHtml(t('metric.gain'))}</div><div class="value ${gcls}">${calc.gain !== null ? fmt(calc.gain) : '—'}</div><div class="sub ${gcls}">${calc.pct !== null ? fmtPct(calc.pct) : '—'}</div></div>
       </div>`;
   }
@@ -155,14 +152,22 @@ export function renderTabContent() {
     const caption = `<p class="hint table-caption">${escapeHtml(t('table.caption', { shown, total }))}</p>`;
 
     tableHtml = `
-      ${tableToolbar}
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>${escapeHtml(t('table.date'))}</th><th>${escapeHtml(t('table.price'))}</th><th>${escapeHtml(t('table.qty'))}</th><th>${escapeHtml(t('table.total'))}</th><th>${escapeHtml(t('table.unrealized'))}</th><th>${escapeHtml(t('table.pct'))}</th><th>${escapeHtml(t('table.actions'))}</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      ${caption}`;
+      <details class="history-details" id="history-${safeId(a.symbol)}">
+        <summary class="history-summary">
+          <span><i class="fa-solid fa-clock-rotate-left"></i> ${escapeHtml(t('table.history'))}</span>
+          <i class="fa-solid fa-chevron-down history-chevron" aria-hidden="true"></i>
+        </summary>
+        <div class="history-body">
+          ${tableToolbar}
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>${escapeHtml(t('table.date'))}</th><th>${escapeHtml(t('table.price'))}</th><th>${escapeHtml(t('table.qty'))}</th><th>${escapeHtml(t('table.total'))}</th><th>${escapeHtml(t('table.unrealized'))}</th><th>${escapeHtml(t('table.pct'))}</th><th>${escapeHtml(t('table.actions'))}</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${caption}
+        </div>
+      </details>`;
   }
 
   $('tab-content').innerHTML = `
@@ -197,7 +202,6 @@ export function renderAll() {
   renderPriceRows();
   renderTabs();
   renderTabContent();
-  renderCalendar();
 }
 
 export function setLoading(msg) {
