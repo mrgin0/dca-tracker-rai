@@ -64,6 +64,22 @@ function restoreSelection() {
   editor.focus();
 }
 
+function insertTable(editor) {
+  if (!editor) return;
+  const rowsRaw = window.prompt('Jumlah baris tabel:', '3');
+  if (rowsRaw === null) return;
+  const colsRaw = window.prompt('Jumlah kolom tabel:', '3');
+  if (colsRaw === null) return;
+  const rows = Math.min(20, Math.max(1, Number.parseInt(rowsRaw, 10) || 3));
+  const cols = Math.min(10, Math.max(1, Number.parseInt(colsRaw, 10) || 3));
+  const head = `<thead><tr>${Array.from({ length: cols }, () => '<th>Header</th>').join('')}</tr></thead>`;
+  const body = Array.from({ length: Math.max(0, rows - 1) }, () =>
+    `<tr>${Array.from({ length: cols }, () => '<td>Isi</td>').join('')}</tr>`
+  ).join('');
+  document.execCommand('insertHTML', false, `<table class="note-table">${head}<tbody>${body}</tbody></table><p><br></p>`);
+}
+
+
 function runEditorCommand(command, value = null) {
   restoreSelection();
   if (command === 'createLink' || command === 'insertImage') {
@@ -71,6 +87,8 @@ function runEditorCommand(command, value = null) {
     const url = window.prompt(promptText, 'https://');
     if (!url) return;
     document.execCommand(command, false, url.trim());
+  } else if (command === 'insertTable') {
+    insertTable($('note-input'));
   } else {
     document.execCommand(command, false, value);
   }
@@ -124,6 +142,7 @@ function renderEditEditor(note) {
       <button type="button" class="rich-btn" data-edit-command="insertUnorderedList" title="Bullet"><i class="fa-solid fa-list-ul"></i></button>
       <button type="button" class="rich-btn" data-edit-command="insertOrderedList" title="Nomor"><i class="fa-solid fa-list-ol"></i></button>
       <button type="button" class="rich-btn" data-edit-command="createLink" title="Tautan"><i class="fa-solid fa-link"></i></button>
+      <button type="button" class="rich-btn" data-edit-command="insertTable" title="Tabel"><i class="fa-solid fa-table"></i></button>
       <button type="button" class="rich-btn" data-edit-command="undo" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
       <button type="button" class="rich-btn" data-edit-command="redo" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
     </div>
@@ -207,6 +226,8 @@ function bindInlineEditor(root) {
     if (command === 'createLink') {
       const url = window.prompt('Masukkan URL tautan:', 'https://');
       if (url) document.execCommand(command, false, url.trim());
+    } else if (command === 'insertTable') {
+      insertTable(editor);
     } else document.execCommand(command, false, btn.dataset.value || null);
   });
   root.addEventListener('change', (e) => {
