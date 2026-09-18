@@ -584,7 +584,12 @@ function wireEvents() {
     const { action, symbol, id, range } = el.dataset;
     switch (action) {
       case 'switch-tab':
-        state.currentTab = symbol; renderAll();
+        if (symbol === state.currentTab) {
+          const history = document.getElementById('history-' + String(symbol).replace(/[^a-zA-Z0-9_-]/g, '_'));
+          if (history) history.open = !history.open;
+        } else {
+          state.currentTab = symbol; renderAll();
+        }
         break;
       case 'open-instrument': openInstrumentModal(); break;
       case 'save-entry': handleSaveEntry(symbol); break;
