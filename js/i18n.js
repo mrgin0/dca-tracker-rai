@@ -41,6 +41,10 @@ const STRINGS = {
     'prices.failed': 'Ambil data gagal. Cek endpoint harga atau tunggu jika sedang rate limit.',
 
     'tabs.instrument': 'Instrumen',
+    'calendar.eyebrow': 'Pemantauan', 'calendar.title': 'Kalender Investasi Bulanan',
+    'calendar.hint': 'Kotak hijau = sudah invest bulan itu, abu-abu = belum, ungu = sudah invest 2× atau lebih dalam bulan yang sama.',
+    'calendar.yearNav': 'Pilih tahun', 'calendar.notInvested': 'Belum invest',
+    'calendar.invested': 'Sudah invest', 'calendar.multi': '2× atau lebih',
 
     'form.eyebrow': 'Catat Transaksi', 'form.date': 'Tanggal pembelian',
     'form.price': 'Harga beli / {unit} ($)', 'form.qty': 'Jumlah / qty', 'form.total': 'Total beli ($)',
@@ -52,7 +56,7 @@ const STRINGS = {
 
     'table.date': 'Tanggal', 'table.price': 'Harga Beli', 'table.qty': 'Jumlah',
     'table.total': 'Total Beli', 'table.unrealized': 'Unrealized', 'table.pct': '%', 'table.actions': 'Aksi',
-    'table.newest': 'Terbaru dulu', 'table.oldest': 'Terlama dulu',
+    'table.newest': 'Terbaru dulu', 'table.oldest': 'Terlama dulu', 'table.history': 'History Pembelian',
     'table.show': 'Tampilkan:', 'table.all': 'Semua',
     'table.caption': 'Menampilkan {shown} dari {total} transaksi. Klik ikon pensil untuk mengubah baris.',
     'table.empty': 'Belum ada transaksi. Catat pembelian DCA pertama Anda.',
@@ -72,10 +76,6 @@ const STRINGS = {
     'pie.empty': 'Belum ada data investasi.', 'pie.costFlag': 'pokok',
 
     'notes.eyebrow': 'Jurnal', 'notes.title': 'Catatan portofolio',
-    'calendar.eyebrow': 'Pemantauan', 'calendar.title': 'Kalender Investasi Bulanan',
-    'calendar.hint': 'Kotak hijau = sudah invest bulan itu, abu-abu = belum, ungu = sudah invest 2× atau lebih dalam bulan yang sama.',
-    'calendar.notInvested': 'Belum invest', 'calendar.invested': 'Sudah invest', 'calendar.multi': '2× atau lebih',
-    'calendar.previous': 'Tahun sebelumnya', 'calendar.next': 'Tahun berikutnya', 'calendar.yearNav': 'Navigasi tahun',
     'notes.placeholder': 'Tulis catatan: alasan beli, target, rencana rebalancing…',
     'notes.add': 'Tambah Catatan', 'notes.empty': 'Belum ada catatan. Tulis sesuatu di atas.',
     'notes.edit': 'Ubah catatan', 'notes.delete': 'Hapus catatan',
@@ -152,6 +152,10 @@ const STRINGS = {
     'prices.failed': 'Fetch failed. Check the price endpoint or wait if you are rate limited.',
 
     'tabs.instrument': 'Instrument',
+    'calendar.eyebrow': 'MONITORING', 'calendar.title': 'Monthly Investment Calendar',
+    'calendar.hint': 'Green = invested that month, gray = not invested, purple = invested 2× or more in the same month.',
+    'calendar.yearNav': 'Select year', 'calendar.notInvested': 'Not invested',
+    'calendar.invested': 'Invested', 'calendar.multi': '2× or more',
 
     'form.eyebrow': 'Record Transaction', 'form.date': 'Purchase date',
     'form.price': 'Buy price / {unit} ($)', 'form.qty': 'Quantity', 'form.total': 'Total cost ($)',
@@ -163,7 +167,7 @@ const STRINGS = {
 
     'table.date': 'Date', 'table.price': 'Buy Price', 'table.qty': 'Quantity',
     'table.total': 'Total Cost', 'table.unrealized': 'Unrealized', 'table.pct': '%', 'table.actions': 'Actions',
-    'table.newest': 'Newest first', 'table.oldest': 'Oldest first',
+    'table.newest': 'Newest first', 'table.oldest': 'Oldest first', 'table.history': 'Purchase History',
     'table.show': 'Show:', 'table.all': 'All',
     'table.caption': 'Showing {shown} of {total} transactions. Click the pencil icon to edit a row.',
     'table.empty': 'No transactions yet. Record your first DCA purchase.',
@@ -183,10 +187,6 @@ const STRINGS = {
     'pie.empty': 'No investment data yet.', 'pie.costFlag': 'cost',
 
     'notes.eyebrow': 'Journal', 'notes.title': 'Portfolio notes',
-    'calendar.eyebrow': 'Monitoring', 'calendar.title': 'Monthly Investment Calendar',
-    'calendar.hint': 'Green = invested that month, gray = not invested, purple = invested 2× or more in the same month.',
-    'calendar.notInvested': 'Not invested', 'calendar.invested': 'Invested', 'calendar.multi': '2× or more',
-    'calendar.previous': 'Previous year', 'calendar.next': 'Next year', 'calendar.yearNav': 'Year navigation',
     'notes.placeholder': 'Write a note: why you bought, targets, rebalancing plan…',
     'notes.add': 'Add Note', 'notes.empty': 'No notes yet. Write something above.',
     'notes.edit': 'Edit note', 'notes.delete': 'Delete note',
