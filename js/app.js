@@ -18,12 +18,12 @@ import { renderCharts, setChartRange, resetChartZoom } from './charts.js?v=10';
 import { exportXLSX, exportBackupJSON } from './export.js?v=10';
 import { DEFAULT_BRANDING, getCachedBranding, setCachedBranding, applyBranding } from './branding.js?v=10';
 import { t, applyI18n, setLang, toggleLang } from './i18n.js?v=10';
-import { setCalendarYear } from './calendar.js?v=12';
+import { shiftCalendarYear, shiftCalendarDecade, setCalendarYear } from './calendar.js?v=12';
 import { initClocks, initMarketStrip, renderClocks, renderRateChip, refreshMarquee, loadRate } from './clock.js?v=10';
 import {
   loadNotes, renderNotes, handleAddNote, startEditNote, cancelEditNote,
-  handleSaveNote, handleDeleteNote, initNoteEditor,
-} from './notes.js?v=11';
+  handleSaveNote, handleDeleteNote,
+} from './notes.js?v=10';
 
 const $ = (id) => document.getElementById(id);
 
@@ -572,7 +572,6 @@ function wireEvents() {
     },
   });
   $('note-add').addEventListener('click', handleAddNote);
-  initNoteEditor();
 
   $('fetch-prices-btn').addEventListener('click', handleFetchPrices);
   $('export-btn').addEventListener('click', exportXLSX);
@@ -584,12 +583,7 @@ function wireEvents() {
     const { action, symbol, id, range } = el.dataset;
     switch (action) {
       case 'switch-tab':
-        if (symbol === state.currentTab) {
-          const history = document.getElementById('history-' + String(symbol).replace(/[^a-zA-Z0-9_-]/g, '_'));
-          if (history) history.open = !history.open;
-        } else {
-          state.currentTab = symbol; renderAll();
-        }
+        state.currentTab = symbol; renderAll();
         break;
       case 'open-instrument': openInstrumentModal(); break;
       case 'save-entry': handleSaveEntry(symbol); break;
@@ -606,7 +600,20 @@ function wireEvents() {
         break;
       case 'set-chart-range': setChartRange(range); break;
       case 'reset-zoom': resetChartZoom(); break;
-
+      case 'calendar-prev': shiftCalendarYear(-1); break;
+      case 'calendar-next': shiftCalendarYear(1); break;
+      case 'calendar-toggle-picker': {
+        const picker = document.getElementById('calendar-year-picker');
+        const button = el;
+        if (picker) {
+          const open = picker.classList.toggle('open');
+          button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        break;
+      }
+      case 'calendar-decade-prev': shiftCalendarDecade(-1); break;
+      case 'calendar-decade-next': shiftCalendarDecade(1); break;
+      case 'calendar-select-year': setCalendarYear(Number(el.dataset.year)); break;
       case 'note-edit': startEditNote(id); break;
       case 'note-cancel': cancelEditNote(); break;
       case 'note-save': handleSaveNote(id); break;
@@ -614,10 +621,14 @@ function wireEvents() {
     }
   });
 
-  document.addEventListener('change', (e) => {
-    const el = e.target;
-    if (el?.id === 'calendar-year-select') setCalendarYear(Number(el.value));
-  });
+  document.addEventListener('click', (e) => {
+    const picker = document.getElementById('calendar-year-picker');
+    const nav = e.target.closest('.calendar-year-nav');
+    if (picker?.classList.contains('open') && !nav) {
+      picker.classList.remove('open');
+      document.querySelector('.calendar-year[aria-expanded="true"]')?.setAttribute('aria-expanded', 'false');
+    }
+  }, true);
 
   document.addEventListener('input', (e) => {
     const t = e.target;
