@@ -1,5 +1,7 @@
+
 // ============================================================
 //  INVESTMENT CALENDAR â€” frekuensi pembelian per bulan / aset
+//  Year picker menggunakan decade selector seperti kalender native.
 // ============================================================
 
 import { state, entriesOf } from './state.js?v=10';
@@ -7,6 +9,7 @@ import { t } from './i18n.js?v=10';
 import { escapeHtml } from './utils.js?v=10';
 
 const $ = (id) => document.getElementById(id);
+const currentYear = new Date().getFullYear();
 
 const MONTHS_ID = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -17,11 +20,14 @@ const MONTHS_EN = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const currentYear = new Date().getFullYear();
 if (!Number.isInteger(state.calendarYear)) state.calendarYear = currentYear;
 
 function monthName(index) {
   return (state.lang === 'en' ? MONTHS_EN : MONTHS_ID)[index];
+}
+
+function decadeStart(year) {
+  return Math.floor(year / 10) * 10;
 }
 
 function countsForYear(year) {
@@ -46,32 +52,29 @@ function renderCell(count, symbol, monthIndex, year) {
     : count === 1
       ? t('calendar.invested')
       : t('calendar.notInvested');
-  return `<span class="calendar-cell ${status}" title="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${count} ${count === 1 ? 'transaksi' : 'transaksi'}`)}" aria-label="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${label}`)}"></span>`;
+  return `<span class="calendar-cell ${status}" title="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${count} transaksi`)}" aria-label="${escapeHtml(`${symbol} Â· ${monthName(monthIndex)} ${year}: ${label}`)}"></span>`;
 }
 
-function availableYears() {
-  const years = new Set();
-  const nowYear = new Date().getFullYear();
-  for (let y = nowYear - 10; y <= nowYear + 10; y++) years.add(y);
-  (state.assets || []).forEach((asset) => {
-    entriesOf(asset.symbol).forEach((tx) => {
-      const match = String(tx.tanggal || '').match(/^(\d{4})-/);
-      if (match) years.add(Number(match[1]));
-    });
-  });
-  return [...years].sort((a, b) => a - b);
-}
+function renderYearPicker(year) {
+  const start = decadeStart(year);
+  const end = start + 9;
+  const years = [start - 1, ...Array.from({ length: 10 }, (_, i) => start + i), end + 1];
 
-function yearOptions(selectedYear) {
-  return availableYears().map((y) =>
-    `<option value="${y}"${y === selectedYear ? ' selected' : ''}>${y}</option>`
-  ).join('');
-}
-
-export function setCalendarYear(year) {
-  if (!Number.isInteger(year)) return;
-  state.calendarYear = year;
-  renderCalendar();
+  return `
+    <div class="calendar-year-picker" id="calendar-year-picker" role="dialog" aria-label="${escapeHtml(t('calendar.yearNav'))}">
+      <div class="calendar-year-picker-head">
+        <button type="button" class="calendar-picker-nav" data-action="calendar-decade-prev" aria-label="${escapeHtml(t('calendar.previous'))}"><i class="fa-solid fa-chevron-left"></i></button>
+        <strong>${start}-${end}</strong>
+        <button type="button" class="calendar-picker-nav" data-action="calendar-decade-next" aria-label="${escapeHtml(t('calendar.next'))}"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+      <div class="calendar-year-grid">
+        ${years.map((y) => {
+          const outside = y < start || y > end;
+          const active = y === year;
+          return `<button type="button" class="calendar-year-option${outside ? ' outside' : ''}${active ? ' active' : ''}" data-action="calendar-select-year" data-year="${y}">${y}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
 }
 
 export function renderCalendar() {
@@ -100,9 +103,10 @@ export function renderCalendar() {
           <p class="calendar-hint">${escapeHtml(t('calendar.hint'))}</p>
         </div>
         <div class="calendar-year-nav" aria-label="${escapeHtml(t('calendar.yearNav'))}">
-          <select id="calendar-year-select" class="calendar-year-select" aria-label="${escapeHtml(state.lang === 'en' ? 'Select year' : 'Pilih tahun')}">
-            ${yearOptions(year)}
-          </select>
+          <button type="button" class="calendar-nav-btn" data-action="calendar-prev" aria-label="${escapeHtml(t('calendar.previous'))}"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="calendar-year" data-action="calendar-toggle-picker" aria-expanded="false" aria-controls="calendar-year-picker">${year}</button>
+          <button type="button" class="calendar-nav-btn" data-action="calendar-next" aria-label="${escapeHtml(t('calendar.next'))}"><i class="fa-solid fa-chevron-right"></i></button>
+          ${renderYearPicker(year)}
         </div>
       </div>
 
@@ -122,8 +126,21 @@ export function renderCalendar() {
     </section>`;
 }
 
+export function setCalendarYear(year) {
+  const next = Number(year);
+  if (!Number.isInteger(next) || next < 1900 || next > 2200) return;
+  state.calendarYear = next;
+  renderCalendar();
+}
+
 export function shiftCalendarYear(delta) {
   const base = Number.isInteger(state.calendarYear) ? state.calendarYear : currentYear;
   state.calendarYear = base + delta;
+  renderCalendar();
+}
+
+export function shiftCalendarDecade(delta) {
+  const base = Number.isInteger(state.calendarYear) ? state.calendarYear : currentYear;
+  state.calendarYear = base + (delta * 10);
   renderCalendar();
 }
