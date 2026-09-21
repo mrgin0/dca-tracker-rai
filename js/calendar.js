@@ -71,7 +71,8 @@ function renderYearPicker(year) {
         ${years.map((y) => {
           const outside = y < start || y > end;
           const active = y === year;
-          return `<button type="button" class="calendar-year-option${outside ? ' outside' : ''}${active ? ' active' : ''}" data-action="calendar-select-year" data-year="${y}">${y}</button>`;
+          const isCurrent = y === currentYear;
+          return `<button type="button" class="calendar-year-option${outside ? ' outside' : ''}${active ? ' active' : ''}${isCurrent ? ' current' : ''}" data-action="calendar-select-year" data-year="${y}">${y}</button>`;
         }).join('')}
       </div>
     </div>`;
